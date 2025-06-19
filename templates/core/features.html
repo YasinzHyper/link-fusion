@@ -1,0 +1,195 @@
+{% extends 'base.html' %}
+
+{% block title %}Features - LinkFusion{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50 py-12">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <!-- Header -->
+        <div class="text-center mb-16">
+            <h1 class="text-4xl md:text-5xl font-bold text-gray-900 mb-6">Powerful Features</h1>
+            <p class="text-xl text-gray-600 max-w-3xl mx-auto">
+                Everything you need to create, manage, and optimize your links like a professional.
+            </p>
+        </div>
+
+        <!-- Main Features Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16">
+            <div class="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-shadow duration-300">
+                <div class="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center mb-6">
+                    <i class="fas fa-link text-blue-600 text-xl"></i>
+                </div>
+                <h3 class="text-xl font-bold text-gray-900 mb-4">Smart URL Shortening</h3>
+                <p class="text-gray-600 mb-4">
+                    Create branded short links with custom aliases and automatic optimization for maximum click-through rates.
+                </p>
+                <ul class="text-sm text-gray-500 space-y-2">
+                    <li>• Custom short codes</li>
+                    <li>• Bulk URL shortening</li>
+                    <li>• Auto-generated codes</li>
+                </ul>
+            </div>
+
+            <div class="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-shadow duration-300">
+                <div class="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center mb-6">
+                    <i class="fas fa-chart-bar text-green-600 text-xl"></i>
+                </div>
+                <h3 class="text-xl font-bold text-gray-900 mb-4">Advanced Analytics</h3>
+                <p class="text-gray-600 mb-4">
+                    Track every click with detailed insights including geographic data, device types, and referrer information.
+                </p>
+                <ul class="text-sm text-gray-500 space-y-2">
+                    <li>• Real-time click tracking</li>
+                    <li>• Geographic insights</li>
+                    <li>• Device & browser data</li>
+                </ul>
+            </div>
+
+            <div class="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-shadow duration-300">
+                <div class="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center mb-6">
+                    <i class="fas fa-qrcode text-purple-600 text-xl"></i>
+                </div>
+                <h3 class="text-xl font-bold text-gray-900 mb-4">Dynamic QR Codes</h3>
+                <p class="text-gray-600 mb-4">
+                    Generate customizable QR codes for your links with various sizes, colors, and error correction levels.
+                </p>
+                <ul class="text-sm text-gray-500 space-y-2">
+                    <li>• Custom colors & sizes</li>
+                    <li>• High-resolution downloads</li>
+                    <li>• Tracking enabled</li>
+                </ul>
+            </div>
+
+            <div class="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-shadow duration-300">
+                <div class="w-12 h-12 bg-yellow-100 rounded-xl flex items-center justify-center mb-6">
+                    <i class="fas fa-globe text-yellow-600 text-xl"></i>
+                </div>
+                <h3 class="text-xl font-bold text-gray-900 mb-4">Custom Domains</h3>
+                <p class="text-gray-600 mb-4">
+                    Use your own domain for branded short links that build trust and improve click-through rates.
+                </p>
+                <ul class="text-sm text-gray-500 space-y-2">
+                    <li>• Multiple custom domains</li>
+                    <li>• SSL certificates included</li>
+                    <li>• Easy DNS setup</li>
+                </ul>
+            </div>
+
+            <div class="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-shadow duration-300">
+                <div class="w-12 h-12 bg-red-100 rounded-xl flex items-center justify-center mb-6">
+                    <i class="fas fa-users text-red-600 text-xl"></i>
+                </div>
+                <h3 class="text-xl font-bold text-gray-900 mb-4">Team Collaboration</h3>
+                <p class="text-gray-600 mb-4">
+                    Work together with team members, share link collections, and manage permissions across your organization.
+                </p>
+                <ul class="text-sm text-gray-500 space-y-2">
+                    <li>• Team workspaces</li>
+                    <li>• Role-based permissions</li>
+                    <li>• Shared link groups</li>
+                </ul>
+            </div>
+
+            <div class="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-shadow duration-300">
+                <div class="w-12 h-12 bg-indigo-100 rounded-xl flex items-center justify-center mb-6">
+                    <i class="fas fa-shield-alt text-indigo-600 text-xl"></i>
+                </div>
+                <h3 class="text-xl font-bold text-gray-900 mb-4">Security & Privacy</h3>
+                <p class="text-gray-600 mb-4">
+                    Enterprise-grade security with password protection, expiration dates, and click limits for sensitive links.
+                </p>
+                <ul class="text-sm text-gray-500 space-y-2">
+                    <li>• Password protection</li>
+                    <li>• Link expiration</li>
+                    <li>• Click limits</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Advanced Features Section -->
+        <div class="bg-white rounded-3xl shadow-xl p-8 md:p-12 mb-16">
+            <h2 class="text-3xl font-bold text-gray-900 text-center mb-12">Advanced Features</h2>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
+                <div>
+                    <h3 class="text-2xl font-bold text-gray-900 mb-6">Link Management</h3>
+                    <div class="space-y-4">
+                        <div class="flex items-start space-x-4">
+                            <div class="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center mt-1">
+                                <i class="fas fa-check text-blue-600 text-xs"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-semibold text-gray-900">Bulk Operations</h4>
+                                <p class="text-gray-600 text-sm">Create, edit, and manage hundreds of links at once with CSV import/export.</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start space-x-4">
+                            <div class="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center mt-1">
+                                <i class="fas fa-check text-blue-600 text-xs"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-semibold text-gray-900">Link Groups</h4>
+                                <p class="text-gray-600 text-sm">Organize your links into folders and collections for better management.</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start space-x-4">
+                            <div class="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center mt-1">
+                                <i class="fas fa-check text-blue-600 text-xs"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-semibold text-gray-900">Smart Search</h4>
+                                <p class="text-gray-600 text-sm">Find any link instantly with powerful search and filtering options.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div>
+                    <h3 class="text-2xl font-bold text-gray-900 mb-6">Analytics & Insights</h3>
+                    <div class="space-y-4">
+                        <div class="flex items-start space-x-4">
+                            <div class="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center mt-1">
+                                <i class="fas fa-check text-green-600 text-xs"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-semibold text-gray-900">Real-time Tracking</h4>
+                                <p class="text-gray-600 text-sm">Monitor clicks as they happen with live dashboards and notifications.</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start space-x-4">
+                            <div class="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center mt-1">
+                                <i class="fas fa-check text-green-600 text-xs"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-semibold text-gray-900">Custom Reports</h4>
+                                <p class="text-gray-600 text-sm">Generate detailed reports with custom date ranges and metrics.</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start space-x-4">
+                            <div class="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center mt-1">
+                                <i class="fas fa-check text-green-600 text-xs"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-semibold text-gray-900">Data Export</h4>
+                                <p class="text-gray-600 text-sm">Export your analytics data to CSV, Excel, or integrate with other tools.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- CTA Section -->
+        <div class="text-center">
+            <h2 class="text-3xl font-bold text-gray-900 mb-6">Ready to try these features?</h2>
+            <p class="text-xl text-gray-600 mb-8">
+                Start your free account today and experience the power of professional link management.
+            </p>
+            <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                <a href="{% url 'users:signup' %}" class="bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 rounded-lg transition-colors font-medium">
+                    Sign Up
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

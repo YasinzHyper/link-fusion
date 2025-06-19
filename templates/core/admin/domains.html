@@ -1,0 +1,311 @@
+{% extends 'core/admin/admin_layout.html' %}
+{% load static %}
+
+{% block title %}Domain Management - Admin - LinkFusion{% endblock %}
+
+{% block admin_title %}Domain Management{% endblock %}
+
+{% block admin_content %}
+<div class="space-y-8" x-data="domainManager()">
+    <!-- Messages -->
+    {% if messages %}
+    <div class="space-y-2">
+        {% for message in messages %}
+        <div class="p-4 rounded-lg {% if message.tags == 'success' %}bg-green-50 text-green-700 border border-green-200{% elif message.tags == 'error' %}bg-red-50 text-red-700 border border-red-200{% else %}bg-blue-50 text-blue-700 border border-blue-200{% endif %}">
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <div>
+        <h1 class="text-3xl font-bold">Domain Management</h1>
+        <p class="text-gray-600">
+            Manage custom domains for branded short links.
+        </p>
+    </div>
+
+    <!-- Statistics -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-gray-600">Total Domains</p>
+                    <p class="text-2xl font-bold text-gray-900">{{ total_domains|default:0 }}</p>
+                </div>
+                <div class="h-12 w-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                    <i class="fas fa-globe text-blue-600 text-xl"></i>
+                </div>
+            </div>
+        </div>
+        
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-gray-600">Active Domains</p>
+                    <p class="text-2xl font-bold text-gray-900">{{ active_domains|default:0 }}</p>
+                </div>
+                <div class="h-12 w-12 bg-green-100 rounded-lg flex items-center justify-center">
+                    <i class="fas fa-check-circle text-green-600 text-xl"></i>
+                </div>
+            </div>
+        </div>
+        
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-gray-600">Inactive Domains</p>
+                    <p class="text-2xl font-bold text-gray-900">{{ inactive_domains|default:0 }}</p>
+                </div>
+                <div class="h-12 w-12 bg-red-100 rounded-lg flex items-center justify-center">
+                    <i class="fas fa-times-circle text-red-600 text-xl"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Search and Actions -->
+    <div class="flex items-center space-x-2">
+        <div class="relative flex-1 max-w-sm">
+            <i class="fas fa-search absolute left-2 top-3 text-gray-400 text-sm"></i>
+            <input
+                type="text"
+                placeholder="Search domains..."
+                class="w-full pl-8 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                id="domainSearch"
+            />
+        </div>
+        <button @click="showAddModal = true" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md transition-colors">
+            <i class="fas fa-plus mr-2"></i>
+            Add Domain
+        </button>
+    </div>
+
+    <!-- Domains Table -->
+    <div class="bg-white rounded-lg border shadow">
+        <div class="overflow-x-auto">
+            <table class="w-full">
+                <thead class="bg-gray-50 border-b">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Domain</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Links</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Created</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-16"></th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    {% for domain in domains %}
+                    <tr class="hover:bg-gray-50">
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="flex items-center">
+                                <i class="fas fa-globe text-gray-400 mr-2"></i>
+                                <div>
+                                    <div class="font-mono font-medium text-gray-900">{{ domain.name }}</div>
+                                    <div class="text-sm text-gray-500">https://{{ domain.name }}/</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                            {% if domain.is_active %}
+                                <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
+                                    <i class="fas fa-check-circle mr-1"></i>Active
+                                </span>
+                            {% else %}
+                                <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800">
+                                    <i class="fas fa-times-circle mr-1"></i>Inactive
+                                </span>
+                            {% endif %}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                            <div class="font-medium">{{ domain.link_count|default:0 }} links</div>
+                            <div class="text-xs text-gray-500">{{ domain.total_clicks|default:0 }} clicks</div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                            <div>{{ domain.created_at|date:"M j, Y" }}</div>
+                            <div class="text-xs text-gray-500">{{ domain.created_at|time:"H:i" }}</div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                            <div class="flex items-center gap-2 justify-end">
+                                <button @click="toggleDomain({{ domain.id }}, '{{ domain.name }}', {{ domain.is_active|yesno:'true,false' }})" 
+                                        class="p-2 hover:bg-gray-100 rounded" 
+                                        title="{% if domain.is_active %}Deactivate{% else %}Activate{% endif %} Domain">
+                                    {% if domain.is_active %}
+                                        <i class="fas fa-toggle-on text-green-600"></i>
+                                    {% else %}
+                                        <i class="fas fa-toggle-off text-gray-400"></i>
+                                    {% endif %}
+                                </button>
+                                <button @click="deleteDomain({{ domain.id }}, '{{ domain.name }}', {{ domain.link_count }})" 
+                                        class="p-2 hover:bg-gray-100 rounded" 
+                                        title="Delete Domain">
+                                    <i class="fas fa-trash text-red-400"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="px-6 py-12 text-center">
+                            <div class="text-gray-500">
+                                <i class="fas fa-globe text-4xl mb-4"></i>
+                                <h3 class="text-lg font-medium text-gray-900 mb-2">No domains found</h3>
+                                <p class="text-gray-600 mb-4">Get started by adding your first custom domain.</p>
+                                <button @click="showAddModal = true" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md transition-colors">
+                                    <i class="fas fa-plus mr-2"></i>
+                                    Add Domain
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Add Domain Modal -->
+    <div x-show="showAddModal" x-transition class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+        <div @click.away="showAddModal = false" class="bg-white rounded-xl max-w-md w-full p-6">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-semibold text-gray-900">Add New Domain</h3>
+                <button @click="showAddModal = false" class="text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <form method="post" @submit="submitForm">
+                {% csrf_token %}
+                <div class="space-y-4">
+                    <div>
+                        <label for="{{ form.name.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">{{ form.name.label }}</label>
+                        {{ form.name }}
+                        {% if form.name.help_text %}
+                            <p class="text-xs text-gray-500 mt-1">{{ form.name.help_text }}</p>
+                        {% endif %}
+                        {% if form.name.errors %}
+                            <p class="text-red-500 text-sm mt-1">{{ form.name.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+
+                    <div class="flex items-center">
+                        {{ form.is_active }}
+                        <label for="{{ form.is_active.id_for_label }}" class="ml-2 text-sm text-gray-700">{{ form.is_active.label }}</label>
+                        {% if form.is_active.errors %}
+                            <p class="text-red-500 text-sm mt-1">{{ form.is_active.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+
+                    <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                        <div class="flex items-start">
+                            <i class="fas fa-info-circle text-blue-600 mt-0.5 mr-2"></i>
+                            <div class="text-sm text-blue-800">
+                                <p class="font-medium mb-1">Domain Setup Instructions:</p>
+                                <ol class="list-decimal list-inside space-y-1 text-xs">
+                                    <li>Point your domain's DNS to this server</li>
+                                    <li>Ensure SSL certificate is configured</li>
+                                    <li>Test the domain before activating</li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flex gap-2 justify-end">
+                        <button type="button" @click="showAddModal = false" class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg font-medium transition-colors">
+                            Cancel
+                        </button>
+                        <button type="submit" :disabled="submitting" class="bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white px-4 py-2 rounded-lg font-medium transition-colors">
+                            <i class="fas fa-spinner fa-spin mr-2" x-show="submitting"></i>
+                            <span x-text="submitting ? 'Adding...' : 'Add Domain'"></span>
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+function domainManager() {
+    return {
+        showAddModal: false,
+        submitting: false,
+
+        submitForm(event) {
+            this.submitting = true;
+            // Let the form submit naturally
+        },
+
+        async toggleDomain(domainId, domainName, isActive) {
+            const action = isActive ? 'deactivate' : 'activate';
+            
+            if (!confirm(`Are you sure you want to ${action} the domain "${domainName}"?`)) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/admin/domains/${domainId}/toggle/`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                    },
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    location.reload();
+                } else {
+                    alert(data.message || 'Error toggling domain status');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error toggling domain status');
+            }
+        },
+
+        async deleteDomain(domainId, domainName, linkCount) {
+            if (linkCount > 0) {
+                alert(`Cannot delete domain "${domainName}". It has ${linkCount} associated links.`);
+                return;
+            }
+
+            if (!confirm(`Are you sure you want to delete the domain "${domainName}"? This action cannot be undone.`)) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/admin/domains/${domainId}/delete/`, {
+                    method: 'DELETE',
+                    headers: {
+                        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                    },
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    location.reload();
+                } else {
+                    alert(data.message || 'Error deleting domain');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error deleting domain');
+            }
+        }
+    }
+}
+
+// Search functionality
+document.getElementById('domainSearch').addEventListener('input', function(e) {
+    const searchTerm = e.target.value.toLowerCase();
+    const rows = document.querySelectorAll('tbody tr');
+    
+    rows.forEach(row => {
+        const text = row.textContent.toLowerCase();
+        row.style.display = text.includes(searchTerm) ? '' : 'none';
+    });
+});
+</script>
+{% endblock %} 

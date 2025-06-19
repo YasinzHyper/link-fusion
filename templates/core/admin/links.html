@@ -1,0 +1,125 @@
+{% extends 'core/admin/admin_layout.html' %}
+{% load static %}
+
+{% block title %}Link Management - Admin - LinkFusion{% endblock %}
+
+{% block admin_title %}Link Management{% endblock %}
+
+{% block admin_content %}
+<div class="space-y-8">
+    <div>
+        <h1 class="text-3xl font-bold">Link Management</h1>
+        <p class="text-gray-600">Monitor and manage all shortened links across the platform.</p>
+    </div>
+
+    <div class="flex items-center space-x-2">
+        <div class="relative flex-1 max-w-sm">
+            <i class="fas fa-search absolute left-2 top-3 text-gray-400 text-sm"></i>
+            <input type="text" placeholder="Search links..." class="w-full pl-8 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" id="linkSearch" />
+        </div>
+        <button class="border border-gray-300 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-50 transition-colors">Export</button>
+    </div>
+
+    <div class="bg-white rounded-lg border shadow">
+        <div class="overflow-x-auto">
+            <table class="w-full">
+                <thead class="bg-gray-50 border-b">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Short URL</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Original URL</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">User</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Clicks</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Created</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-16"></th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    {% for link in links|default:"" %}
+                    <tr class="hover:bg-gray-50">
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="font-mono text-sm text-blue-600">{{ request.get_host }}/{{ link.short_code }}</span>
+                        </td>
+                        <td class="px-6 py-4">
+                            <div class="max-w-xs truncate" title="{{ link.original_url }}">{{ link.original_url }}</div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ link.user.email }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ link.click_count|default:0 }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            {% if link.is_active %}
+                                <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">Active</span>
+                            {% else %}
+                                <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800">Blocked</span>
+                            {% endif %}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ link.created_at|date:"M j, Y" }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                            <div class="relative" x-data="{ open: false }">
+                                <button @click="open = !open" class="text-gray-400 hover:text-gray-600 p-1">
+                                    <i class="fas fa-ellipsis-h"></i>
+                                </button>
+                                <div x-show="open" @click.away="open = false" class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg border z-10">
+                                    <div class="py-1">
+                                        <a href="#" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                            <i class="fas fa-eye mr-2"></i>View Details
+                                        </a>
+                                        <a href="#" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                            <i class="fas fa-edit mr-2"></i>Edit
+                                        </a>
+                                        <a href="#" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                            <i class="fas fa-ban mr-2"></i>Block
+                                        </a>
+                                        <a href="#" class="flex items-center px-4 py-2 text-sm text-red-600 hover:bg-gray-100">
+                                            <i class="fas fa-trash mr-2"></i>Delete
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <!-- Sample data -->
+                    <tr class="hover:bg-gray-50">
+                        <td class="px-6 py-4 whitespace-nowrap"><span class="font-mono text-sm text-blue-600">lnk.fus/abc123</span></td>
+                        <td class="px-6 py-4"><div class="max-w-xs truncate" title="https://example.com/very-long-url">https://example.com/very-long-url</div></td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">john@example.com</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">1,234</td>
+                        <td class="px-6 py-4 whitespace-nowrap"><span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">Active</span></td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">Mar 10, 2024</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                            <div class="relative" x-data="{ open: false }">
+                                <button @click="open = !open" class="text-gray-400 hover:text-gray-600 p-1"><i class="fas fa-ellipsis-h"></i></button>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr class="hover:bg-gray-50">
+                        <td class="px-6 py-4 whitespace-nowrap"><span class="font-mono text-sm text-blue-600">lnk.fus/xyz789</span></td>
+                        <td class="px-6 py-4"><div class="max-w-xs truncate" title="https://malicious-site.com">https://malicious-site.com</div></td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">jane@example.com</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">56</td>
+                        <td class="px-6 py-4 whitespace-nowrap"><span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800">Blocked</span></td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">Mar 12, 2024</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                            <div class="relative" x-data="{ open: false }">
+                                <button @click="open = !open" class="text-gray-400 hover:text-gray-600 p-1"><i class="fas fa-ellipsis-h"></i></button>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+document.getElementById('linkSearch').addEventListener('input', function(e) {
+    const searchTerm = e.target.value.toLowerCase();
+    const rows = document.querySelectorAll('tbody tr');
+    rows.forEach(row => {
+        const text = row.textContent.toLowerCase();
+        row.style.display = text.includes(searchTerm) ? '' : 'none';
+    });
+});
+</script>
+{% endblock %}

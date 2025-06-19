@@ -1,0 +1,121 @@
+{% extends 'base.html' %}
+
+{% block title %}About Us - LinkFusion{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50 py-12">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <!-- Header -->
+        <div class="text-center mb-16">
+            <h1 class="text-4xl md:text-5xl font-bold text-gray-900 mb-6">About LinkFusion</h1>
+            <p class="text-xl text-gray-600 max-w-3xl mx-auto">
+                We're building the future of link management, one short URL at a time.
+            </p>
+        </div>
+
+        <!-- Mission Section -->
+        <div class="bg-white rounded-3xl shadow-xl p-8 md:p-12 mb-12">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+                <div>
+                    <h2 class="text-3xl font-bold text-gray-900 mb-6">Our Mission</h2>
+                    <p class="text-lg text-gray-600 mb-6">
+                        LinkFusion was founded with a simple mission: to make link management powerful, 
+                        intuitive, and accessible to everyone. Whether you're a solo creator, a growing 
+                        startup, or a large enterprise, we believe you deserve tools that work as hard as you do.
+                    </p>
+                    <p class="text-lg text-gray-600">
+                        We're not just shortening URLs – we're creating connections, enabling insights, 
+                        and empowering businesses to understand their audience better.
+                    </p>
+                </div>
+                <div class="bg-gradient-to-br from-blue-50 to-purple-50 rounded-2xl p-8 text-center">
+                    <div class="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                        <i class="fas fa-rocket text-white text-2xl"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold text-gray-900 mb-4">10M+ Links Created</h3>
+                    <p class="text-gray-600">Trusted by professionals worldwide</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Values Section -->
+        <div class="mb-16">
+            <h2 class="text-3xl font-bold text-gray-900 text-center mb-12">Our Values</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div class="bg-white rounded-2xl p-8 text-center shadow-lg">
+                    <div class="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center mx-auto mb-6">
+                        <i class="fas fa-shield-alt text-blue-600 text-xl"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-900 mb-4">Privacy First</h3>
+                    <p class="text-gray-600">
+                        We protect your data with enterprise-grade security and never sell your information.
+                    </p>
+                </div>
+                
+                <div class="bg-white rounded-2xl p-8 text-center shadow-lg">
+                    <div class="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center mx-auto mb-6">
+                        <i class="fas fa-bolt text-green-600 text-xl"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-900 mb-4">Lightning Fast</h3>
+                    <p class="text-gray-600">
+                        Our global infrastructure ensures your links work instantly, everywhere.
+                    </p>
+                </div>
+                
+                <div class="bg-white rounded-2xl p-8 text-center shadow-lg">
+                    <div class="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center mx-auto mb-6">
+                        <i class="fas fa-heart text-purple-600 text-xl"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-900 mb-4">Customer Obsessed</h3>
+                    <p class="text-gray-600">
+                        Every feature we build starts with understanding what you need to succeed.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Team Section -->
+        <div class="bg-white rounded-3xl shadow-xl p-8 md:p-12 mb-12">
+            <h2 class="text-3xl font-bold text-gray-900 text-center mb-12">Meet Our Team</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div class="text-center">
+                    <div class="w-24 h-24 bg-gray-300 rounded-full mx-auto mb-4"></div>
+                    <h3 class="text-xl font-bold text-gray-900 mb-2">Sarah Johnson</h3>
+                    <p class="text-gray-600 mb-2">CEO & Founder</p>
+                    <p class="text-sm text-gray-500">Former PM at Google, passionate about building tools that matter.</p>
+                </div>
+                
+                <div class="text-center">
+                    <div class="w-24 h-24 bg-gray-300 rounded-full mx-auto mb-4"></div>
+                    <h3 class="text-xl font-bold text-gray-900 mb-2">Michael Chen</h3>
+                    <p class="text-gray-600 mb-2">CTO</p>
+                    <p class="text-sm text-gray-500">Full-stack engineer with 10+ years building scalable systems.</p>
+                </div>
+                
+                <div class="text-center">
+                    <div class="w-24 h-24 bg-gray-300 rounded-full mx-auto mb-4"></div>
+                    <h3 class="text-xl font-bold text-gray-900 mb-2">Emily Rodriguez</h3>
+                    <p class="text-gray-600 mb-2">Head of Design</p>
+                    <p class="text-sm text-gray-500">Design leader focused on creating delightful user experiences.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Contact CTA -->
+        <div class="text-center">
+            <h2 class="text-3xl font-bold text-gray-900 mb-6">Ready to get started?</h2>
+            <p class="text-xl text-gray-600 mb-8">
+                Join thousands of professionals who trust LinkFusion with their links.
+            </p>
+            <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                <a href="{% url 'users:signup' %}" class="bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 rounded-lg transition-colors font-medium">
+                    Start Free Trial
+                </a>
+                <a href="{% url 'core:contact' %}" class="border border-gray-300 hover:bg-gray-50 text-gray-700 px-8 py-4 rounded-lg transition-colors font-medium">
+                    Contact Us
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

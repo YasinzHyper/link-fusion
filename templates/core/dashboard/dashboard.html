@@ -1,0 +1,249 @@
+{% extends 'core/dashboard/dashboard_layout.html' %}
+
+{% block title %}Dashboard - LinkFusion{% endblock %}
+
+{% block dashboard_title %}Dashboard{% endblock %}
+
+{% block dashboard_content %}
+<div class="space-y-8">
+    <!-- Header -->
+    <div>
+        <h1 class="text-3xl font-bold text-gray-900 mb-2">Welcome back, {{ user.first_name|default:user.username }}!</h1>
+        <p class="text-gray-600">Here's what's happening with your links today.</p>
+    </div>
+
+    <!-- Quick Actions -->
+    <div>
+            <div class="bg-white rounded-2xl shadow-sm p-6">
+                <h2 class="text-lg font-semibold mb-4">Quick Actions</h2>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <a href="{% url 'core:create_link' %}" class="flex items-center p-4 bg-blue-50 rounded-xl hover:bg-blue-100 transition-colors">
+                        <div class="w-10 h-10 bg-blue-500 rounded-lg flex items-center justify-center mr-4">
+                            <i class="fas fa-plus text-white"></i>
+                        </div>
+                        <div>
+                            <div class="font-medium text-gray-900">Create Link</div>
+                            <div class="text-sm text-gray-600">Shorten a new URL</div>
+                        </div>
+                    </a>
+                    
+                    <a href="{% url 'core:analytics' %}" class="flex items-center p-4 bg-green-50 rounded-xl hover:bg-green-100 transition-colors">
+                        <div class="w-10 h-10 bg-green-500 rounded-lg flex items-center justify-center mr-4">
+                            <i class="fas fa-chart-bar text-white"></i>
+                        </div>
+                        <div>
+                            <div class="font-medium text-gray-900">View Analytics</div>
+                            <div class="text-sm text-gray-600">Track your performance</div>
+                        </div>
+                    </a>
+                    
+                    <a href="{% url 'core:qr_codes' %}" class="flex items-center p-4 bg-purple-50 rounded-xl hover:bg-purple-100 transition-colors">
+                        <div class="w-10 h-10 bg-purple-500 rounded-lg flex items-center justify-center mr-4">
+                            <i class="fas fa-qrcode text-white"></i>
+                        </div>
+                        <div>
+                            <div class="font-medium text-gray-900">QR Codes</div>
+                            <div class="text-sm text-gray-600">Generate QR codes</div>
+                        </div>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+    <!-- Stats Overview -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+            <div class="bg-white rounded-2xl shadow-sm p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-gray-600">Total Links</p>
+                        <p class="text-3xl font-bold text-gray-900">{{ total_links }}</p>
+                    </div>
+                    <div class="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
+                        <i class="fas fa-link text-blue-600"></i>
+                    </div>
+                </div>
+                <div class="mt-4 flex items-center text-sm">
+                    <span class="text-green-600 font-medium">
+                        <i class="fas fa-arrow-up mr-1"></i>
+                        12%
+                    </span>
+                    <span class="text-gray-600 ml-2">from last month</span>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-2xl shadow-sm p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-gray-600">Total Clicks</p>
+                        <p class="text-3xl font-bold text-gray-900">{{ total_clicks }}</p>
+                    </div>
+                    <div class="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
+                        <i class="fas fa-mouse-pointer text-green-600"></i>
+                    </div>
+                </div>
+                <div class="mt-4 flex items-center text-sm">
+                    <span class="text-green-600 font-medium">
+                        <i class="fas fa-arrow-up mr-1"></i>
+                        18%
+                    </span>
+                    <span class="text-gray-600 ml-2">from last month</span>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-2xl shadow-sm p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-gray-600">Click Rate</p>
+                        <p class="text-3xl font-bold text-gray-900">
+                            {% if total_links > 0 %}
+                                {{ total_clicks }}
+                            {% else %}
+                                0.0
+                            {% endif %}
+                        </p>
+                    </div>
+                    <div class="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center">
+                        <i class="fas fa-percentage text-purple-600"></i>
+                    </div>
+                </div>
+                <div class="mt-4 flex items-center text-sm">
+                    <span class="text-green-600 font-medium">
+                        <i class="fas fa-arrow-up mr-1"></i>
+                        5%
+                    </span>
+                    <span class="text-gray-600 ml-2">from last month</span>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-2xl shadow-sm p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-gray-600">Active Links</p>
+                        <p class="text-3xl font-bold text-gray-900">{{ total_links }}</p>
+                    </div>
+                    <div class="w-12 h-12 bg-yellow-100 rounded-xl flex items-center justify-center">
+                        <i class="fas fa-check-circle text-yellow-600"></i>
+                    </div>
+                </div>
+                <div class="mt-4 flex items-center text-sm">
+                    <span class="text-gray-600">All links active</span>
+                </div>
+            </div>
+        </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <!-- Recent Links -->
+            <div class="bg-white rounded-2xl shadow-sm">
+                <div class="p-6 border-b border-gray-200">
+                    <div class="flex items-center justify-between">
+                        <h2 class="text-lg font-semibold text-gray-900">Recent Links</h2>
+                        <a href="{% url 'core:my_links' %}" class="text-blue-600 hover:text-blue-500 text-sm font-medium">
+                            View all
+                        </a>
+                    </div>
+                </div>
+                <div class="p-6">
+                    {% if recent_links %}
+                        <div class="space-y-4">
+                            {% for link in recent_links %}
+                                <div class="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
+                                    <div class="flex-1 min-w-0">
+                                        <div class="flex items-center space-x-3">
+                                            <div class="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+                                                <i class="fas fa-link text-blue-600 text-sm"></i>
+                                            </div>
+                                            <div class="flex-1 min-w-0">
+                                                <p class="text-sm font-medium text-gray-900 truncate">
+                                                    {{ link.title|default:link.original_url|truncatechars:40 }}
+                                                </p>
+                                                <p class="text-xs text-gray-500">
+                                                    {{ link.short_url }}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-center space-x-4">
+                                        <div class="text-right">
+                                            <p class="text-sm font-medium text-gray-900">{{ link.clicks }}</p>
+                                            <p class="text-xs text-gray-500">clicks</p>
+                                        </div>
+                                        <button 
+                                            onclick="copyToClipboard('{{ link.short_url }}')"
+                                            class="p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100"
+                                            title="Copy link"
+                                        >
+                                            <i class="fas fa-copy text-sm"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="text-center py-8">
+                            <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                                <i class="fas fa-link text-gray-400 text-xl"></i>
+                            </div>
+                            <h3 class="text-lg font-medium text-gray-900 mb-2">No links yet</h3>
+                            <p class="text-gray-600 mb-4">Start by creating your first shortened link</p>
+                            <a href="{% url 'core:create_link' %}" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors">
+                                Create Link
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Recent Activity -->
+            <div class="bg-white rounded-2xl shadow-sm">
+                <div class="p-6 border-b border-gray-200">
+                    <h2 class="text-lg font-semibold text-gray-900">Recent Activity</h2>
+                </div>
+                <div class="p-6">
+                    {% if recent_clicks %}
+                        <div class="space-y-4">
+                            {% for click in recent_clicks %}
+                                <div class="flex items-center space-x-4">
+                                    <div class="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
+                                        <i class="fas fa-mouse-pointer text-green-600 text-sm"></i>
+                                    </div>
+                                    <div class="flex-1 min-w-0">
+                                        <p class="text-sm text-gray-900">
+                                            Click on <span class="font-medium">{{ click.url.short_url }}</span>
+                                        </p>
+                                        <p class="text-xs text-gray-500">
+                                            {{ click.clicked_at|timesince }} ago
+                                            {% if click.country %}• {{ click.country }}{% endif %}
+                                        </p>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="text-center py-8">
+                            <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                                <i class="fas fa-chart-line text-gray-400 text-xl"></i>
+                            </div>
+                            <h3 class="text-lg font-medium text-gray-900 mb-2">No activity yet</h3>
+                            <p class="text-gray-600">Activity will appear here when people click your links</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function copyToClipboard(text) {
+    navigator.clipboard.writeText(text).then(function() {
+        // Show success feedback
+        const event = new CustomEvent('clipboard-success');
+        document.dispatchEvent(event);
+        
+        // You could also show a toast notification here
+        console.log('Link copied to clipboard!');
+    });
+}
+</script>
+{% endblock %} 

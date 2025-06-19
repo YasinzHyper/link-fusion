@@ -1,0 +1,375 @@
+{% extends "core/dashboard/dashboard_layout.html" %}
+{% load static %}
+
+{% block title %}Analytics - LinkFusion{% endblock %}
+
+{% block dashboard_content %}
+<div class="space-y-6">
+    <!-- Header -->
+    <div>
+        <h1 class="text-3xl font-bold text-gray-900">Analytics</h1>
+        <p class="text-gray-600">Detailed insights into your link performance</p>
+    </div>
+
+    <!-- Overview Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200">
+            <div class="p-6 flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-gray-600">Total Clicks</p>
+                    <div class="text-2xl font-bold text-gray-900">{{ total_clicks|default:0|floatformat:0 }}</div>
+                    {% if clicks_change != 0 %}
+                    <p class="text-xs {% if clicks_change_positive %}text-green-600{% else %}text-red-600{% endif %} flex items-center mt-1">
+                        <i class="fas fa-arrow-{% if clicks_change_positive %}up{% else %}down{% endif %} mr-1"></i>
+                        {% if clicks_change_positive %}+{% endif %}{{ clicks_change }}% from last month
+                    </p>
+                    {% else %}
+                    <p class="text-xs text-gray-500 mt-1">No change from last month</p>
+                    {% endif %}
+                </div>
+                <i class="fas fa-eye text-blue-600 text-xl"></i>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200">
+            <div class="p-6 flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-gray-600">Unique Visitors</p>
+                    <div class="text-2xl font-bold text-gray-900">{{ unique_visitors|default:0|floatformat:0 }}</div>
+                    {% if unique_visitors_change != 0 %}
+                    <p class="text-xs {% if unique_visitors_change_positive %}text-green-600{% else %}text-red-600{% endif %} flex items-center mt-1">
+                        <i class="fas fa-arrow-{% if unique_visitors_change_positive %}up{% else %}down{% endif %} mr-1"></i>
+                        {% if unique_visitors_change_positive %}+{% endif %}{{ unique_visitors_change }}% from last month
+                    </p>
+                    {% else %}
+                    <p class="text-xs text-gray-500 mt-1">No change from last month</p>
+                    {% endif %}
+                </div>
+                <i class="fas fa-users text-green-600 text-xl"></i>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200">
+            <div class="p-6 flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-gray-600">Click Rate</p>
+                    <div class="text-2xl font-bold text-gray-900">{{ click_rate|default:0 }}%</div>
+                    {% if click_rate_change != 0 %}
+                    <p class="text-xs {% if click_rate_change_positive %}text-green-600{% else %}text-red-600{% endif %} flex items-center mt-1">
+                        <i class="fas fa-arrow-{% if click_rate_change_positive %}up{% else %}down{% endif %} mr-1"></i>
+                        {% if click_rate_change_positive %}+{% endif %}{{ click_rate_change }}% from last month
+                    </p>
+                    {% else %}
+                    <p class="text-xs text-gray-500 mt-1">No change from last month</p>
+                    {% endif %}
+                </div>
+                <i class="fas fa-chart-bar text-purple-600 text-xl"></i>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200">
+            <div class="p-6 flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-gray-600">Avg. Daily Clicks</p>
+                    <div class="text-2xl font-bold text-gray-900">{{ avg_daily_clicks|default:0|floatformat:0 }}</div>
+                    {% if daily_clicks_change != 0 %}
+                    <p class="text-xs {% if daily_clicks_change_positive %}text-green-600{% else %}text-red-600{% endif %} flex items-center mt-1">
+                        <i class="fas fa-arrow-{% if daily_clicks_change_positive %}up{% else %}down{% endif %} mr-1"></i>
+                        {% if daily_clicks_change_positive %}+{% endif %}{{ daily_clicks_change }}% from last month
+                    </p>
+                    {% else %}
+                    <p class="text-xs text-gray-500 mt-1">No change from last month</p>
+                    {% endif %}
+                </div>
+                <i class="fas fa-calendar text-orange-600 text-xl"></i>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tabs -->
+    <div x-data="{ activeTab: 'overview' }" class="space-y-6">
+        <div class="border-b border-gray-200">
+            <div class="grid grid-cols-4 -mb-px">
+                <button @click="activeTab = 'overview'" 
+                        :class="activeTab === 'overview' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
+                        class="py-2 px-1 border-b-2 font-medium text-sm text-center">
+                    Overview
+                </button>
+                <button @click="activeTab = 'geographic'" 
+                        :class="activeTab === 'geographic' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
+                        class="py-2 px-1 border-b-2 font-medium text-sm text-center">
+                    Geographic
+                </button>
+                <button @click="activeTab = 'devices'" 
+                        :class="activeTab === 'devices' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
+                        class="py-2 px-1 border-b-2 font-medium text-sm text-center">
+                    Devices
+                </button>
+                <button @click="activeTab = 'referrers'" 
+                        :class="activeTab === 'referrers' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
+                        class="py-2 px-1 border-b-2 font-medium text-sm text-center">
+                    Referrers
+                </button>
+            </div>
+        </div>
+
+        <!-- Overview Tab -->
+        <div x-show="activeTab === 'overview'" class="space-y-6">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200">
+                    <div class="p-6 border-b border-gray-200">
+                        <h2 class="text-xl font-semibold text-gray-900">Top Performing Links</h2>
+                        <p class="text-gray-600 mt-1">Your most clicked short links</p>
+                    </div>
+                    <div class="p-6">
+                        <div class="space-y-4">
+                            {% for link in top_links %}
+                            <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                                <div>
+                                    <p class="font-medium text-blue-600">{{ link.get_short_url }}</p>
+                                    <p class="text-sm text-gray-500">{{ link.title|default:"Untitled Link" }}</p>
+                                </div>
+                                <span class="bg-gray-100 text-gray-800 text-xs px-2 py-1 rounded-full">{{ link.clicks }} click{{ link.clicks|pluralize }}</span>
+                            </div>
+                            {% empty %}
+                            <div class="text-center py-8">
+                                <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4 mx-auto">
+                                    <i class="fas fa-chart-bar text-gray-400 text-2xl"></i>
+                                </div>
+                                <h3 class="text-lg font-medium text-gray-900 mb-2">No clicks yet</h3>
+                                <p class="text-gray-500">Your top performing links will appear here once you have clicks.</p>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200">
+                    <div class="p-6 border-b border-gray-200">
+                        <h2 class="text-xl font-semibold text-gray-900">Recent Activity</h2>
+                        <p class="text-gray-600 mt-1">Latest clicks and events</p>
+                    </div>
+                    <div class="p-6">
+                        <div class="space-y-4">
+                            {% for activity in recent_activity %}
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm font-medium text-gray-900">Link clicked</p>
+                                    <p class="text-xs text-blue-600">{{ activity.url.get_short_url }}</p>
+                                </div>
+                                <div class="text-right">
+                                    <p class="text-xs text-gray-500">{{ activity.clicked_at|timesince }} ago</p>
+                                    {% if activity.country %}
+                                    <span class="bg-gray-100 text-gray-800 text-xs px-2 py-1 rounded-full">{{ activity.country }}</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            {% empty %}
+                            <div class="text-center py-8">
+                                <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4 mx-auto">
+                                    <i class="fas fa-clock text-gray-400 text-2xl"></i>
+                                </div>
+                                <h3 class="text-lg font-medium text-gray-900 mb-2">No recent activity</h3>
+                                <p class="text-gray-500">Recent clicks on your links will appear here.</p>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Geographic Tab -->
+        <div x-show="activeTab === 'geographic'" class="space-y-6">
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200">
+                <div class="p-6 border-b border-gray-200">
+                    <h2 class="text-xl font-semibold text-gray-900 flex items-center gap-2">
+                        <i class="fas fa-globe text-blue-600"></i>
+                        Geographic Distribution
+                    </h2>
+                    <p class="text-gray-600 mt-1">Clicks by country and region</p>
+                </div>
+                <div class="p-6">
+                    <div class="space-y-4">
+                        {% for country in countries %}
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-3">
+                                <div class="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center">
+                                    <i class="fas fa-globe text-blue-600"></i>
+                                </div>
+                                <div>
+                                    <p class="font-medium text-gray-900">{{ country.country|default:"Unknown" }}</p>
+                                    <p class="text-sm text-gray-500">{{ country.count }} click{{ country.count|pluralize }}</p>
+                                </div>
+                            </div>
+                            <div class="text-right">
+                                <p class="font-semibold text-gray-900">{{ country.percentage }}%</p>
+                                <div class="w-20 bg-gray-200 rounded-full h-2">
+                                    <div class="bg-blue-600 h-2 rounded-full" style="width: {{ country.percentage }}%"></div>
+                                </div>
+                            </div>
+                        </div>
+                        {% empty %}
+                        <div class="text-center py-8">
+                            <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4 mx-auto">
+                                <i class="fas fa-globe text-gray-400 text-2xl"></i>
+                            </div>
+                            <h3 class="text-lg font-medium text-gray-900 mb-2">No geographic data</h3>
+                            <p class="text-gray-500">Geographic data will appear here once you have clicks with location information.</p>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Devices Tab -->
+        <div x-show="activeTab === 'devices'" class="space-y-6">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200">
+                    <div class="p-6 border-b border-gray-200">
+                        <h2 class="text-xl font-semibold text-gray-900">Device Types</h2>
+                        <p class="text-gray-600 mt-1">Clicks by device category</p>
+                    </div>
+                    <div class="p-6">
+                        <div class="space-y-4">
+                            {% for device in devices %}
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center gap-3">
+                                    {% if device.device_type == 'mobile' %}
+                                        <i class="fas fa-mobile-alt text-blue-600"></i>
+                                    {% elif device.device_type == 'tablet' %}
+                                        <i class="fas fa-tablet-alt text-purple-600"></i>
+                                    {% elif device.device_type == 'desktop' %}
+                                        <i class="fas fa-desktop text-green-600"></i>
+                                    {% else %}
+                                        <i class="fas fa-question text-gray-600"></i>
+                                    {% endif %}
+                                    <div>
+                                        <p class="font-medium text-gray-900">{{ device.device_type|title|default:"Unknown" }}</p>
+                                        <p class="text-sm text-gray-500">{{ device.count }} click{{ device.count|pluralize }}</p>
+                                    </div>
+                                </div>
+                                <p class="font-semibold text-gray-900">{{ device.percentage }}%</p>
+                            </div>
+                            {% empty %}
+                            <div class="text-center py-8">
+                                <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4 mx-auto">
+                                    <i class="fas fa-mobile-alt text-gray-400 text-2xl"></i>
+                                </div>
+                                <h3 class="text-lg font-medium text-gray-900 mb-2">No device data</h3>
+                                <p class="text-gray-500">Device information will appear here once you have clicks.</p>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200">
+                    <div class="p-6 border-b border-gray-200">
+                        <h2 class="text-xl font-semibold text-gray-900">Browsers</h2>
+                        <p class="text-gray-600 mt-1">Clicks by browser type</p>
+                    </div>
+                    <div class="p-6">
+                        <div class="space-y-4">
+                            {% for browser in browsers %}
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center gap-3">
+                                    {% if 'chrome' in browser.browser.lower %}
+                                        <i class="fab fa-chrome text-blue-600"></i>
+                                    {% elif 'safari' in browser.browser.lower %}
+                                        <i class="fab fa-safari text-gray-600"></i>
+                                    {% elif 'firefox' in browser.browser.lower %}
+                                        <i class="fab fa-firefox text-orange-600"></i>
+                                    {% elif 'edge' in browser.browser.lower %}
+                                        <i class="fab fa-edge text-blue-500"></i>
+                                    {% else %}
+                                        <i class="fas fa-globe text-gray-600"></i>
+                                    {% endif %}
+                                    <div>
+                                        <p class="font-medium text-gray-900">{{ browser.browser|title|default:"Unknown" }}</p>
+                                        <p class="text-sm text-gray-500">{{ browser.count }} click{{ browser.count|pluralize }}</p>
+                                    </div>
+                                </div>
+                                <p class="font-semibold text-gray-900">{{ browser.percentage }}%</p>
+                            </div>
+                            {% empty %}
+                            <div class="text-center py-8">
+                                <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4 mx-auto">
+                                    <i class="fas fa-globe text-gray-400 text-2xl"></i>
+                                </div>
+                                <h3 class="text-lg font-medium text-gray-900 mb-2">No browser data</h3>
+                                <p class="text-gray-500">Browser information will appear here once you have clicks.</p>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Referrers Tab -->
+        <div x-show="activeTab === 'referrers'" class="space-y-6">
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200">
+                <div class="p-6 border-b border-gray-200">
+                    <h2 class="text-xl font-semibold text-gray-900">Top Referrers</h2>
+                    <p class="text-gray-600 mt-1">Traffic sources for your links</p>
+                </div>
+                <div class="p-6">
+                    <div class="space-y-4">
+                        {% if direct_traffic > 0 %}
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-3">
+                                <i class="fas fa-link text-gray-600"></i>
+                                <div>
+                                    <p class="font-medium text-gray-900">Direct</p>
+                                    <p class="text-sm text-gray-500">{{ direct_traffic }} click{{ direct_traffic|pluralize }}</p>
+                                </div>
+                            </div>
+                            <p class="font-semibold text-gray-900">{{ direct_percentage }}%</p>
+                        </div>
+                        {% endif %}
+
+                        {% for referrer in referrers %}
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-3">
+                                {% if 'google' in referrer.domain.lower %}
+                                    <i class="fab fa-google text-blue-600"></i>
+                                {% elif 'twitter' in referrer.domain.lower or 'x.com' in referrer.domain.lower %}
+                                    <i class="fab fa-twitter text-blue-400"></i>
+                                {% elif 'facebook' in referrer.domain.lower %}
+                                    <i class="fab fa-facebook text-blue-700"></i>
+                                {% elif 'linkedin' in referrer.domain.lower %}
+                                    <i class="fab fa-linkedin text-blue-800"></i>
+                                {% elif 'youtube' in referrer.domain.lower %}
+                                    <i class="fab fa-youtube text-red-600"></i>
+                                {% elif 'instagram' in referrer.domain.lower %}
+                                    <i class="fab fa-instagram text-pink-600"></i>
+                                {% else %}
+                                    <i class="fas fa-external-link-alt text-gray-600"></i>
+                                {% endif %}
+                                <div>
+                                    <p class="font-medium text-gray-900">{{ referrer.domain|title }}</p>
+                                    <p class="text-sm text-gray-500">{{ referrer.count }} click{{ referrer.count|pluralize }}</p>
+                                </div>
+                            </div>
+                            <p class="font-semibold text-gray-900">{{ referrer.percentage }}%</p>
+                        </div>
+                        {% empty %}
+                        {% if direct_traffic == 0 %}
+                        <div class="text-center py-8">
+                            <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4 mx-auto">
+                                <i class="fas fa-external-link-alt text-gray-400 text-2xl"></i>
+                            </div>
+                            <h3 class="text-lg font-medium text-gray-900 mb-2">No referrer data</h3>
+                            <p class="text-gray-500">Traffic sources will appear here once you have clicks from external sites.</p>
+                        </div>
+                        {% endif %}
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

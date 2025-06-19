@@ -1,0 +1,486 @@
+{% extends "core/dashboard/dashboard_layout.html" %}
+{% load static %}
+
+{% block title %}My Links - LinkFusion{% endblock %}
+
+{% block dashboard_content %}
+<div class="space-y-6">
+    <!-- Header -->
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+            <h1 class="text-3xl font-bold text-gray-900">My Links</h1>
+            <p class="text-gray-600">Manage and track all your shortened URLs</p>
+        </div>
+        <a href="{% url 'core:create_link' %}" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium transition-all duration-200 flex items-center gap-2">
+            <i class="fas fa-plus"></i>
+            Create New Link
+        </a>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-gray-600">Total Links</p>
+                    <p class="text-2xl font-bold text-gray-900">{{ total_links|default:0 }}</p>
+                </div>
+                <div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                    <i class="fas fa-link text-blue-600"></i>
+                </div>
+            </div>
+        </div>
+        
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-gray-600">Active Links</p>
+                    <p class="text-2xl font-bold text-gray-900">{{ active_links|default:0 }}</p>
+                </div>
+                <div class="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+                    <i class="fas fa-check-circle text-green-600"></i>
+                </div>
+            </div>
+        </div>
+        
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-gray-600">Total Clicks</p>
+                    <p class="text-2xl font-bold text-gray-900">{{ total_clicks|default:0 }}</p>
+                </div>
+                <div class="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
+                    <i class="fas fa-eye text-purple-600"></i>
+                </div>
+            </div>
+        </div>
+        
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-gray-600">Avg. CTR</p>
+                    <p class="text-2xl font-bold text-gray-900">{{ avg_ctr|default:0 }}%</p>
+                </div>
+                <div class="w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center">
+                    <i class="fas fa-chart-bar text-orange-600"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Links Table -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200">
+        <div class="p-6 border-b border-gray-200">
+            <form method="get" class="flex flex-col sm:flex-row gap-4">
+                <div class="relative flex-1">
+                    <i class="fas fa-search absolute left-3 top-3 text-gray-400"></i>
+                    <input 
+                        type="text" 
+                        name="search"
+                        value="{{ search }}"
+                        placeholder="Search links by title, URL, or short code..."
+                        class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    >
+                </div>
+                <select name="status" class="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                    <option value="">All Status</option>
+                    <option value="active" {% if status_filter == 'active' %}selected{% endif %}>Active</option>
+                    <option value="inactive" {% if status_filter == 'inactive' %}selected{% endif %}>Inactive</option>
+                    <option value="expired" {% if status_filter == 'expired' %}selected{% endif %}>Expired</option>
+                </select>
+                <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors">
+                    <i class="fas fa-filter mr-2"></i>Filter
+                </button>
+                {% if search or status_filter %}
+                <a href="{% url 'core:my_links' %}" class="text-gray-600 hover:text-gray-900 px-4 py-2 border border-gray-300 rounded-lg transition-colors">
+                    <i class="fas fa-times mr-2"></i>Clear
+                </a>
+                {% endif %}
+            </form>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="w-full">
+                <thead class="bg-gray-50 border-b border-gray-200">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Link Details</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Stats</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Created</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-200">
+                    {% for link in links %}
+                    <tr class="hover:bg-gray-50">
+                        <td class="px-6 py-4">
+                            <div class="space-y-1">
+                                <div class="flex items-center gap-2">
+                                    <p class="font-medium text-blue-600 font-mono">{{ link.short_url }}</p>
+                                    <button onclick="copyToClipboard('{{ link.short_url }}')" class="p-1 hover:bg-gray-100 rounded transition-colors" title="Copy link">
+                                        <i class="fas fa-copy text-gray-400"></i>
+                                    </button>
+                                    <a href="{{ link.short_url }}" target="_blank" class="p-1 hover:bg-gray-100 rounded transition-colors" title="Open link">
+                                        <i class="fas fa-external-link-alt text-gray-400"></i>
+                                    </a>
+                                </div>
+                                <p class="text-sm font-medium text-gray-900">{{ link.title|default:"Untitled Link" }}</p>
+                                <p class="text-xs text-gray-500 truncate max-w-xs" title="{{ link.original_url }}">{{ link.original_url }}</p>
+                                {% if link.domain %}
+                                <span class="inline-flex items-center px-2 py-1 rounded-full text-xs bg-blue-100 text-blue-800">
+                                    <i class="fas fa-globe mr-1"></i>{{ link.domain.name }}
+                                </span>
+                                {% endif %}
+                                {% if link.has_password %}
+                                <span class="inline-flex items-center px-2 py-1 rounded-full text-xs bg-yellow-100 text-yellow-800">
+                                    <i class="fas fa-lock mr-1"></i>Password Protected
+                                </span>
+                                {% endif %}
+                                {% if link.max_clicks %}
+                                <span class="inline-flex items-center px-2 py-1 rounded-full text-xs bg-purple-100 text-purple-800">
+                                    <i class="fas fa-eye mr-1"></i>Max: {{ link.max_clicks }}
+                                </span>
+                                {% endif %}
+                                {% if link.expires_at %}
+                                <span class="inline-flex items-center px-2 py-1 rounded-full text-xs bg-orange-100 text-orange-800">
+                                    <i class="fas fa-clock mr-1"></i>Expires: {{ link.expires_at|date:"M j" }}
+                                </span>
+                                {% endif %}
+                                {% if link.qr_code %}
+                                <span class="inline-flex items-center px-2 py-1 rounded-full text-xs bg-green-100 text-green-800">
+                                    <i class="fas fa-qrcode mr-1"></i>QR Code
+                                </span>
+                                {% endif %}
+                            </div>
+                        </td>
+                        <td class="px-6 py-4">
+                            <div class="space-y-1">
+                                <p class="font-semibold text-gray-900">{{ link.clicks }} click{{ link.clicks|pluralize }}</p>
+                                {% if link.click_set.exists %}
+                                <p class="text-xs text-gray-500">Last: {{ link.click_set.first.clicked_at|timesince }} ago</p>
+                                {% else %}
+                                <p class="text-xs text-gray-500">No clicks yet</p>
+                                {% endif %}
+                            </div>
+                        </td>
+                        <td class="px-6 py-4">
+                            {% if link.expires_at and link.expires_at < now %}
+                                <span class="bg-red-100 text-red-800 text-xs px-2 py-1 rounded-full">expired</span>
+                            {% elif link.is_active %}
+                                <span class="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">active</span>
+                            {% else %}
+                                <span class="bg-gray-100 text-gray-800 text-xs px-2 py-1 rounded-full">inactive</span>
+                            {% endif %}
+                        </td>
+                        <td class="px-6 py-4">
+                            <div class="space-y-1">
+                                <p class="text-sm text-gray-900">{{ link.created_at|date:"M j, Y" }}</p>
+                                <p class="text-xs text-gray-500">{{ link.created_at|timesince }} ago</p>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4">
+                            <div class="flex items-center gap-1">
+                                <a href="{% url 'core:analytics' %}?link={{ link.id }}" class="p-2 hover:bg-gray-100 rounded transition-colors" title="View Analytics">
+                                    <i class="fas fa-chart-bar text-gray-400"></i>
+                                </a>
+                                {% if link.qr_code %}
+                                    {% if link.qr_code.image %}
+                                        <button onclick="showQRCode('{{ link.qr_code.image.url }}', '{{ link.title|default:link.short_code|escapejs }}')" class="p-2 hover:bg-gray-100 rounded transition-colors" title="View QR Code">
+                                            <i class="fas fa-qrcode text-gray-400"></i>
+                                        </button>
+                                    {% endif %}
+                                {% else %}
+                                <button onclick="generateQRCode({{ link.id }})" class="p-2 hover:bg-gray-100 rounded transition-colors" title="Generate QR Code">
+                                    <i class="fas fa-qrcode text-gray-400"></i>
+                                </button>
+                                {% endif %}
+                                <a href="{% url 'core:edit_link' link.pk %}" class="p-2 hover:bg-gray-100 rounded transition-colors" title="Edit Link">
+                                    <i class="fas fa-edit text-gray-400"></i>
+                                </a>
+                                <button onclick="toggleLink({{ link.id }})" class="p-2 hover:bg-gray-100 rounded transition-colors" title="{% if link.is_active %}Deactivate{% else %}Activate{% endif %} Link">
+                                    <i class="fas fa-{% if link.is_active %}pause{% else %}play{% endif %} text-gray-400"></i>
+                                </button>
+                                <button onclick="deleteLink({{ link.id }}, '{{ link.title|default:link.short_code|escapejs }}')" class="p-2 hover:bg-gray-100 rounded transition-colors" title="Delete Link">
+                                    <i class="fas fa-trash text-red-400"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="px-6 py-12 text-center">
+                            <div class="flex flex-col items-center">
+                                <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+                                    <i class="fas fa-link text-gray-400 text-2xl"></i>
+                                </div>
+                                <h3 class="text-lg font-medium text-gray-900 mb-2">No links found</h3>
+                                <p class="text-gray-500 mb-4">
+                                    {% if search or status_filter %}
+                                        No links match your current filters.
+                                    {% else %}
+                                        You haven't created any links yet.
+                                    {% endif %}
+                                </p>
+                                <a href="{% url 'core:create_link' %}" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors">
+                                    <i class="fas fa-plus mr-2"></i>
+                                    Create Your First Link
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- Pagination -->
+        {% if is_paginated %}
+        <div class="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
+            <div class="flex-1 flex justify-between sm:hidden">
+                {% if page_obj.has_previous %}
+                    <a href="?page={{ page_obj.previous_page_number }}{% if search %}&search={{ search }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}" class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                        Previous
+                    </a>
+                {% endif %}
+                {% if page_obj.has_next %}
+                    <a href="?page={{ page_obj.next_page_number }}{% if search %}&search={{ search }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}" class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                        Next
+                    </a>
+                {% endif %}
+            </div>
+            <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+                <div>
+                    <p class="text-sm text-gray-700">
+                        Showing
+                        <span class="font-medium">{{ page_obj.start_index }}</span>
+                        to
+                        <span class="font-medium">{{ page_obj.end_index }}</span>
+                        of
+                        <span class="font-medium">{{ paginator.count }}</span>
+                        results
+                    </p>
+                </div>
+                <div>
+                    <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                        {% if page_obj.has_previous %}
+                            <a href="?page={{ page_obj.previous_page_number }}{% if search %}&search={{ search }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}" class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                                <i class="fas fa-chevron-left"></i>
+                            </a>
+                        {% endif %}
+                        
+                        {% for num in page_obj.paginator.page_range %}
+                            {% if page_obj.number == num %}
+                                <span class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-blue-50 text-sm font-medium text-blue-600">
+                                    {{ num }}
+                                </span>
+                            {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                                <a href="?page={{ num }}{% if search %}&search={{ search }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}" class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50">
+                                    {{ num }}
+                                </a>
+                            {% endif %}
+                        {% endfor %}
+                        
+                        {% if page_obj.has_next %}
+                            <a href="?page={{ page_obj.next_page_number }}{% if search %}&search={{ search }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}" class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                                <i class="fas fa-chevron-right"></i>
+                            </a>
+                        {% endif %}
+                    </nav>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- QR Code Modal -->
+<div id="qrModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
+    <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+        <div class="mt-3 text-center">
+            <h3 class="text-lg leading-6 font-medium text-gray-900" id="qrModalTitle">QR Code</h3>
+            <div class="mt-2 px-7 py-3">
+                <img id="qrCodeImage" src="" alt="QR Code" class="mx-auto max-w-full h-auto">
+            </div>
+            <div class="items-center px-4 py-3">
+                <button id="downloadQR" class="px-4 py-2 bg-blue-500 text-white text-base font-medium rounded-md w-24 mr-2 hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-300">
+                    Download
+                </button>
+                <button id="closeQRModal" class="px-4 py-2 bg-gray-500 text-white text-base font-medium rounded-md w-24 hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-300">
+                    Close
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Copy to clipboard functionality
+function copyToClipboard(text) {
+    navigator.clipboard.writeText(text).then(function() {
+        showNotification('Link copied to clipboard!', 'success');
+    }, function(err) {
+        console.error('Could not copy text: ', err);
+        showNotification('Failed to copy link', 'error');
+    });
+}
+
+// Toggle link active status
+function toggleLink(linkId) {
+    fetch(`/api/links/${linkId}/toggle/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': getCsrfToken(),
+            'Content-Type': 'application/json',
+        },
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showNotification(`Link ${data.is_active ? 'activated' : 'deactivated'} successfully`, 'success');
+            setTimeout(() => location.reload(), 1000);
+        } else {
+            showNotification('Error toggling link status', 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showNotification('Error toggling link status', 'error');
+    });
+}
+
+// Delete link
+function deleteLink(linkId, linkTitle) {
+    if (confirm(`Are you sure you want to delete "${linkTitle}"? This action cannot be undone.`)) {
+        fetch(`/api/links/${linkId}/delete/`, {
+            method: 'DELETE',
+            headers: {
+                'X-CSRFToken': getCsrfToken(),
+                'Content-Type': 'application/json',
+            },
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showNotification('Link deleted successfully', 'success');
+                setTimeout(() => location.reload(), 1000);
+            } else {
+                showNotification('Error deleting link', 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showNotification('Error deleting link', 'error');
+        });
+    }
+}
+
+// Helper functions
+function getCsrfToken() {
+    const token = document.querySelector('[name=csrfmiddlewaretoken]');
+    if (token) {
+        return token.value;
+    }
+    return document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '{{ csrf_token }}';
+}
+
+function showNotification(message, type = 'info') {
+    const notification = document.createElement('div');
+    notification.className = `fixed top-4 right-4 z-50 max-w-sm p-4 rounded-lg shadow-lg transition-all duration-300 transform translate-x-full`;
+    
+    if (type === 'success') {
+        notification.className += ' bg-green-500 text-white';
+    } else if (type === 'error') {
+        notification.className += ' bg-red-500 text-white';
+    } else {
+        notification.className += ' bg-blue-500 text-white';
+    }
+    
+    notification.innerHTML = `
+        <div class="flex items-center">
+            <span class="flex-1">${message}</span>
+            <button onclick="this.parentElement.parentElement.remove()" class="ml-2 text-white hover:text-gray-200">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+    `;
+    
+    document.body.appendChild(notification);
+    
+    setTimeout(() => {
+        notification.classList.remove('translate-x-full');
+    }, 100);
+    
+    setTimeout(() => {
+        notification.classList.add('translate-x-full');
+        setTimeout(() => notification.remove(), 300);
+    }, 5000);
+}
+
+// QR Code functions
+function showQRCode(imageUrl, title) {
+    const modal = document.getElementById('qrModal');
+    const qrImage = document.getElementById('qrCodeImage');
+    const qrTitle = document.getElementById('qrModalTitle');
+    const downloadBtn = document.getElementById('downloadQR');
+    
+    qrImage.src = imageUrl;
+    qrTitle.textContent = `QR Code - ${title}`;
+    modal.classList.remove('hidden');
+    
+    downloadBtn.onclick = function() {
+        const link = document.createElement('a');
+        link.href = imageUrl;
+        link.download = `qr_${title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.png`;
+        link.click();
+    };
+}
+
+function generateQRCode(linkId) {
+    fetch(`/api/links/${linkId}/generate-qr/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': getCsrfToken(),
+            'Content-Type': 'application/json',
+        },
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showNotification('QR Code generated successfully!', 'success');
+            setTimeout(() => location.reload(), 1000);
+        } else {
+            showNotification('Error generating QR code', 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showNotification('Error generating QR code', 'error');
+    });
+}
+
+// Close QR modal
+document.addEventListener('DOMContentLoaded', function() {
+    const closeBtn = document.getElementById('closeQRModal');
+    const modal = document.getElementById('qrModal');
+    
+    closeBtn.onclick = function() {
+        modal.classList.add('hidden');
+    };
+    
+    // Close modal when clicking outside
+    modal.onclick = function(event) {
+        if (event.target === modal) {
+            modal.classList.add('hidden');
+        }
+    };
+});
+
+// Add CSRF token if not present
+if (!document.querySelector('[name=csrfmiddlewaretoken]')) {
+    const csrfInput = document.createElement('input');
+    csrfInput.type = 'hidden';
+    csrfInput.name = 'csrfmiddlewaretoken';
+    csrfInput.value = '{{ csrf_token }}';
+    document.body.appendChild(csrfInput);
+}
+</script>
+{% endblock %} 

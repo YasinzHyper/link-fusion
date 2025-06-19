@@ -1,0 +1,432 @@
+{% extends "core/dashboard/dashboard_layout.html" %}
+{% load static %}
+
+{% block title %}QR Codes - LinkFusion{% endblock %}
+
+{% block dashboard_content %}
+<div class="space-y-6" x-data="qrCodeManager()">
+    <!-- Header -->
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+            <h1 class="text-3xl font-bold text-gray-900">QR Codes{% if is_admin %} <span class="text-lg text-blue-600">(Admin)</span>{% endif %}</h1>
+            <p class="text-gray-600">Generate and manage custom QR codes</p>
+            {% if is_admin %}
+                <p class="text-sm text-blue-600 mt-1">You're viewing all QR codes across the platform</p>
+            {% endif %}
+        </div>
+        <button @click="showGenerator = !showGenerator" 
+                class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium transition-all duration-200 flex items-center gap-2">
+            <i class="fas fa-plus"></i>
+            Generate QR Code  
+        </button>
+    </div>
+
+    <!-- Statistics -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-gray-600">Total QR Codes</p>
+                    <p class="text-2xl font-bold text-gray-900">{{ total_qr_codes|default:0 }}</p>
+                </div>
+                <div class="h-12 w-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                    <i class="fas fa-qrcode text-blue-600 text-xl"></i>
+                </div>
+            </div>
+        </div>
+        
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-gray-600">Total Scans</p>
+                    <p class="text-2xl font-bold text-gray-900">{{ total_scans|default:0 }}</p>
+                </div>
+                <div class="h-12 w-12 bg-green-100 rounded-lg flex items-center justify-center">
+                    <i class="fas fa-eye text-green-600 text-xl"></i>
+                </div>
+            </div>
+        </div>
+        
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-gray-600">Average Scans</p>
+                    <p class="text-2xl font-bold text-gray-900">{{ total_scans|default:0|floatformat:0 }}</p>
+                </div>
+                <div class="h-12 w-12 bg-purple-100 rounded-lg flex items-center justify-center">
+                    <i class="fas fa-chart-line text-purple-600 text-xl"></i>
+                </div>
+            </div>
+        </div>
+        
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-gray-600">This Month</p>
+                    <p class="text-2xl font-bold text-gray-900">{{ qr_codes|length }}</p>
+                </div>
+                <div class="h-12 w-12 bg-orange-100 rounded-lg flex items-center justify-center">
+                    <i class="fas fa-calendar text-orange-600 text-xl"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- QR Code Generator (Collapsible) -->
+    <div x-show="showGenerator" x-transition class="bg-white rounded-xl shadow-sm border border-gray-200">
+        <div class="p-6 border-b border-gray-200">
+            <h2 class="text-xl font-semibold text-gray-900 flex items-center gap-2">
+                <i class="fas fa-qrcode text-blue-600"></i>
+                QR Code Generator
+            </h2>
+            <p class="text-gray-600 mt-1">Create custom QR codes with advanced styling options</p>
+        </div>
+        <div class="p-6">
+            <div x-data="{ activeTab: 'basic' }" class="space-y-6">
+                <div class="border-b border-gray-200">
+                    <nav class="-mb-px flex space-x-8">
+                        <button @click="activeTab = 'basic'" 
+                                :class="activeTab === 'basic' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
+                                class="whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm">
+                            Basic
+                        </button>
+                        <button @click="activeTab = 'design'" 
+                                :class="activeTab === 'design' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
+                                class="whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm">
+                            Design
+                        </button>
+                        <button @click="activeTab = 'advanced'" 
+                                :class="activeTab === 'advanced' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
+                                class="whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm">
+                            Advanced
+                        </button>
+                    </nav>
+                </div>
+
+                <form method="post" @submit="handleSubmit" class="space-y-6">
+                    {% csrf_token %}
+                            
+                    <!-- Basic Tab -->
+                    <div x-show="activeTab === 'basic'" class="space-y-4">
+                        <div>
+                            <label for="{{ qr_form.qr_content.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">{{ qr_form.qr_content.label }}</label>
+                            {{ qr_form.qr_content }}
+                            {% if qr_form.qr_content.help_text %}
+                                <p class="text-xs text-gray-500 mt-1">{{ qr_form.qr_content.help_text }}</p>
+                            {% endif %}
+                            {% if qr_form.qr_content.errors %}
+                                <p class="text-red-500 text-sm mt-1">{{ qr_form.qr_content.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label for="{{ qr_form.size.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">Size (pixels)</label>
+                                {{ qr_form.size }}
+                                {% if qr_form.size.errors %}
+                                    <p class="text-red-500 text-sm mt-1">{{ qr_form.size.errors.0 }}</p>
+                                {% endif %}
+                            </div>
+
+                            <div>
+                                <label for="{{ qr_form.format.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">Format</label>
+                                {{ qr_form.format }}
+                                {% if qr_form.format.errors %}
+                                    <p class="text-red-500 text-sm mt-1">{{ qr_form.format.errors.0 }}</p>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Design Tab -->
+                    <div x-show="activeTab === 'design'" class="space-y-4">
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label for="{{ qr_form.fill_color.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">Foreground Color</label>
+                                <div class="flex gap-2 items-center">
+                                    {{ qr_form.fill_color }}
+                                    <span class="text-sm text-gray-500">{{ qr_form.fill_color.value|default:"#000000" }}</span>
+                                </div>
+                                {% if qr_form.fill_color.errors %}
+                                    <p class="text-red-500 text-sm mt-1">{{ qr_form.fill_color.errors.0 }}</p>
+                                {% endif %}
+                            </div>
+
+                            <div>
+                                <label for="{{ qr_form.back_color.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">Background Color</label>
+                                <div class="flex gap-2 items-center">
+                                    {{ qr_form.back_color }}
+                                    <span class="text-sm text-gray-500">{{ qr_form.back_color.value|default:"#ffffff" }}</span>
+                                </div>
+                                {% if qr_form.back_color.errors %}
+                                    <p class="text-red-500 text-sm mt-1">{{ qr_form.back_color.errors.0 }}</p>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div>
+                            <label for="{{ qr_form.corner_style.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">Corner Style</label>
+                            {{ qr_form.corner_style }}
+                            {% if qr_form.corner_style.errors %}
+                                <p class="text-red-500 text-sm mt-1">{{ qr_form.corner_style.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Advanced Tab -->
+                    <div x-show="activeTab === 'advanced'" class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Logo Upload</label>
+                            <input 
+                                type="file" 
+                                name="logo"
+                                accept="image/*"
+                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            >
+                            <p class="text-xs text-gray-500 mt-1">Upload a logo to embed in the center (recommended: square, max 1MB)</p>
+                        </div>
+
+                        <div>
+                            <label for="{{ qr_form.error_correction.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">Error Correction Level</label>
+                            {{ qr_form.error_correction }}
+                            {% if qr_form.error_correction.errors %}
+                                <p class="text-red-500 text-sm mt-1">{{ qr_form.error_correction.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="flex gap-3">
+                        <button type="submit" :disabled="submitting" 
+                                class="bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white px-6 py-2 rounded-lg font-medium transition-all duration-200 flex items-center gap-2">
+                            <i class="fas fa-spinner fa-spin" x-show="submitting"></i>
+                            <i class="fas fa-qrcode" x-show="!submitting"></i>
+                            <span x-text="submitting ? 'Generating...' : 'Generate QR Code'"></span>
+                        </button>
+                        <button type="button" @click="showGenerator = false" class="flex items-center gap-2 px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-50">
+                            <i class="fas fa-times"></i>
+                            Cancel
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Generated QR Codes List -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200">
+        <div class="p-6 border-b border-gray-200">
+            <h2 class="text-xl font-semibold text-gray-900">
+                {% if is_admin %}All QR Codes{% else %}Your QR Codes{% endif %}
+            </h2>
+            <p class="text-gray-600 mt-1">
+                {% if is_admin %}All QR codes across the platform{% else %}Previously generated QR codes{% endif %}
+            </p>
+        </div>
+        {% if qr_codes %}
+        <div class="overflow-x-auto">
+            <table class="w-full">
+                <thead class="bg-gray-50 border-b border-gray-200">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">QR Code</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Details</th>
+                        {% if is_admin %}
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">User</th>
+                        {% endif %}
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Scans</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Created</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-200">
+                    {% for qr_code in qr_codes %}
+                    <tr class="hover:bg-gray-50">
+                        <td class="px-6 py-4">
+                            <div class="w-16 h-16 bg-gray-100 border rounded-lg flex items-center justify-center overflow-hidden">
+                                {% if qr_code.image %}
+                                    <img src="{{ qr_code.image.url }}" alt="QR Code" class="w-full h-full object-cover">
+                                {% else %}
+                                    <i class="fas fa-qrcode text-gray-600 text-xl"></i>
+                                {% endif %}
+                            </div>
+                        </td>
+                        <td class="px-6 py-4">
+                            <div>
+                                <p class="font-medium text-gray-900">{{ qr_code.url.title|default:"QR Code" }}</p>
+                                <p class="text-sm text-blue-600">{{ qr_code.url.get_short_url }}</p>
+                                <div class="flex items-center gap-2 mt-1">
+                                    <span class="text-xs bg-gray-100 text-gray-800 px-2 py-1 rounded">{{ qr_code.size }}x{{ qr_code.size }}</span>
+                                    <span class="text-xs bg-gray-100 text-gray-800 px-2 py-1 rounded">PNG</span>
+                                    {% if qr_code.url.is_active %}
+                                        <span class="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">Active</span>
+                                    {% else %}
+                                        <span class="text-xs bg-gray-100 text-gray-800 px-2 py-1 rounded">Inactive</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </td>
+                        {% if is_admin %}
+                        <td class="px-6 py-4">
+                            <div>
+                                <p class="font-medium text-gray-900">{{ qr_code.url.user.username }}</p>
+                                <p class="text-sm text-gray-600">{{ qr_code.url.user.email }}</p>
+                            </div>
+                        </td>
+                        {% endif %}
+                        <td class="px-6 py-4">
+                            <p class="font-semibold text-gray-900">{{ qr_code.get_scan_count|default:0 }}</p>
+                        </td>
+                        <td class="px-6 py-4">
+                            <p class="text-sm text-gray-900">{{ qr_code.created_at|date:"M d, Y" }}</p>
+                            <p class="text-xs text-gray-500">{{ qr_code.created_at|time:"H:i" }}</p>
+                        </td>
+                        <td class="px-6 py-4">
+                            <div class="flex items-center gap-2">
+                                {% if qr_code.image %}
+                                <a href="{{ qr_code.image.url }}" download="qr_code_{{ qr_code.url.short_code }}.png" 
+                                   class="p-2 hover:bg-gray-100 rounded" title="Download QR Code">
+                                    <i class="fas fa-download text-gray-400"></i>
+                                </a>
+                                <button @click="viewQRCode('{{ qr_code.image.url }}', '{{ qr_code.url.title|default:"QR Code" }}')" 
+                                        class="p-2 hover:bg-gray-100 rounded" title="View QR Code">
+                                    <i class="fas fa-eye text-gray-400"></i>
+                                </button>
+                                {% else %}
+                                <button @click="generateQRCode({{ qr_code.url.id }})" 
+                                        class="p-2 hover:bg-gray-100 rounded" title="Generate QR Code">
+                                    <i class="fas fa-qrcode text-gray-400"></i>
+                                </button>
+                                {% endif %}
+                                {% if is_admin or qr_code.url.user == request.user %}
+                                <button @click="deleteQRCode({{ qr_code.id }})" 
+                                        class="p-2 hover:bg-gray-100 rounded" title="Delete QR Code">
+                                    <i class="fas fa-trash text-red-400"></i>
+                                </button>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="p-12 text-center">
+            <i class="fas fa-qrcode text-gray-400 text-5xl mb-4"></i>
+            <h3 class="text-lg font-medium text-gray-900 mb-2">No QR Codes Yet</h3>
+            <p class="text-gray-600 mb-6">
+                {% if is_admin %}
+                    No QR codes have been generated yet across the platform.
+                {% else %}
+                    You haven't generated any QR codes yet. Click the button above to create your first one!
+                {% endif %}
+            </p>
+            {% if not is_admin %}
+            <button @click="showGenerator = true" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium transition-all duration-200 flex items-center gap-2 mx-auto">
+                <i class="fas fa-plus"></i>
+                Generate QR Code
+            </button>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- QR Code Modal -->
+    <div x-show="showModal" x-transition class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+        <div @click.away="showModal = false" class="bg-white rounded-xl max-w-md w-full p-6">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-semibold text-gray-900" x-text="modalTitle"></h3>
+                <button @click="showModal = false" class="text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="text-center">
+                <img :src="modalImage" alt="QR Code" class="mx-auto max-w-full h-auto border rounded-lg">
+                <div class="mt-4 flex gap-2 justify-center">
+                    <a :href="modalImage" :download="'qr_code_' + modalTitle.toLowerCase().replace(/\s+/g, '_') + '.png'" 
+                       class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors">
+                        <i class="fas fa-download mr-2"></i>
+                        Download
+                    </a>
+                    <button @click="showModal = false" class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg font-medium transition-colors">
+                        Close
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function qrCodeManager() {
+    return {
+        showGenerator: false,
+        showModal: false,
+        modalImage: '',
+        modalTitle: '',
+        submitting: false,
+
+        handleSubmit(event) {
+            this.submitting = true;
+            // Let the form submit normally
+        },
+
+        viewQRCode(imageUrl, title) {
+            this.modalImage = imageUrl;
+            this.modalTitle = title;
+            this.showModal = true;
+        },
+
+        async generateQRCode(linkId) {
+            try {
+                const response = await fetch(`/api/links/${linkId}/generate-qr/`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                    },
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    // Reload the page to show updated QR code
+                    location.reload();
+                } else {
+                    alert(data.message || 'Error generating QR code');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error generating QR code');
+            }
+        },
+
+        async deleteQRCode(qrId) {
+            if (!confirm('Are you sure you want to delete this QR code? This action cannot be undone.')) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/qr-codes/${qrId}/delete/`, {
+                    method: 'DELETE',
+                    headers: {
+                        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                    },
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    // Reload the page to show updated list
+                    location.reload();
+                } else {
+                    alert(data.message || 'Error deleting QR code');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error deleting QR code');
+            }
+        }
+    }
+}
+</script>
+
+{% endblock %} 

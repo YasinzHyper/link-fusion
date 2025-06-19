@@ -1,0 +1,306 @@
+{% extends "core/dashboard/dashboard_layout.html" %}
+{% load static %}
+
+{% block title %}Create Link - LinkFusion{% endblock %}
+
+{% block dashboard_content %}
+<div class="space-y-6">
+    <!-- Header -->
+    <div>
+        <h1 class="text-3xl font-bold text-gray-900">Create Short Link</h1>
+        <p class="text-gray-600">Transform your long URLs into powerful short links</p>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Main Form -->
+        <div class="lg:col-span-2">
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200">
+                <div class="p-6 border-b border-gray-200">
+                    <h2 class="text-xl font-semibold text-gray-900 flex items-center gap-2">
+                        <i class="fas fa-cog text-blue-600"></i>
+                        Link Configuration
+                    </h2>
+                </div>
+                <div class="p-6">
+                    <!-- Tabs -->
+                    <div x-data="{ activeTab: 'basic' }" class="space-y-6">
+                        <div class="border-b border-gray-200">
+                            <nav class="-mb-px flex space-x-8">
+                                <button @click="activeTab = 'basic'" 
+                                        :class="activeTab === 'basic' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
+                                        class="whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm">
+                                    Basic
+                                </button>
+                                <button @click="activeTab = 'advanced'" 
+                                        :class="activeTab === 'advanced' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
+                                        class="whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm">
+                                    Advanced
+                                </button>
+                                <button @click="activeTab = 'security'" 
+                                        :class="activeTab === 'security' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
+                                        class="whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm">
+                                    Security
+                                </button>
+                            </nav>
+                        </div>
+
+                        <form method="post" class="space-y-6">
+                            {% csrf_token %}
+                            
+                            <!-- Basic Tab -->
+                            <div x-show="activeTab === 'basic'" class="space-y-4">
+                                <div>
+                                    <label for="{{ form.original_url.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">Original URL *</label>
+                                    {{ form.original_url }}
+                                    {% if form.original_url.errors %}
+                                        <p class="mt-1 text-sm text-red-600">{{ form.original_url.errors.0 }}</p>
+                                    {% endif %}
+                                </div>
+
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div>
+                                        <label for="{{ form.domain.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">Domain</label>
+                                        {{ form.domain }}
+                                        {% if form.domain.errors %}
+                                            <p class="mt-1 text-sm text-red-600">{{ form.domain.errors.0 }}</p>
+                                        {% endif %}
+                                        <p class="mt-1 text-xs text-gray-500">Choose a domain for your short link</p>
+                                    </div>
+
+                                    <div>
+                                        <label for="{{ form.title.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">Title (Optional)</label>
+                                        {{ form.title }}
+                                        {% if form.title.errors %}
+                                            <p class="mt-1 text-sm text-red-600">{{ form.title.errors.0 }}</p>
+                                        {% endif %}
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <label for="{{ form.description.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">Description (Optional)</label>
+                                    {{ form.description }}
+                                    {% if form.description.errors %}
+                                        <p class="mt-1 text-sm text-red-600">{{ form.description.errors.0 }}</p>
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                            <!-- Advanced Tab -->
+                            <div x-show="activeTab === 'advanced'" class="space-y-4">
+                                <div>
+                                    <label for="{{ form.group.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">Link Group (Optional)</label>
+                                    {{ form.group }}
+                                    {% if form.group.errors %}
+                                        <p class="mt-1 text-sm text-red-600">{{ form.group.errors.0 }}</p>
+                                    {% endif %}
+                                    <p class="mt-1 text-xs text-gray-500">Organize your links into groups</p>
+                                </div>
+
+                                <div>
+                                    <label for="{{ form.expires_at.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">Expiry Date (Optional)</label>
+                                    {{ form.expires_at }}
+                                    {% if form.expires_at.errors %}
+                                        <p class="mt-1 text-sm text-red-600">{{ form.expires_at.errors.0 }}</p>
+                                    {% endif %}
+                                    <p class="mt-1 text-xs text-gray-500">Link will automatically expire after this date</p>
+                                </div>
+
+                                <div>
+                                    <label for="{{ form.max_clicks.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">Maximum Clicks (Optional)</label>
+                                    {{ form.max_clicks }}
+                                    {% if form.max_clicks.errors %}
+                                        <p class="mt-1 text-sm text-red-600">{{ form.max_clicks.errors.0 }}</p>
+                                    {% endif %}
+                                    <p class="mt-1 text-xs text-gray-500">Link will stop working after this many clicks</p>
+                                </div>
+                            </div>
+
+                            <!-- Security Tab -->
+                            <div x-show="activeTab === 'security'" class="space-y-4">
+                                <div>
+                                    <label for="{{ form.password.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">Password Protection (Optional)</label>
+                                    {{ form.password }}
+                                    {% if form.password.errors %}
+                                        <p class="mt-1 text-sm text-red-600">{{ form.password.errors.0 }}</p>
+                                    {% endif %}
+                                    <p class="mt-1 text-xs text-gray-500">Require a password to access this link. Passwords are securely hashed and stored.</p>
+                                </div>
+
+                                <div>
+                                    <div class="flex items-center space-x-3">
+                                        {{ form.generate_qr }}
+                                        <label for="{{ form.generate_qr.id_for_label }}" class="text-sm font-medium text-gray-700">Generate QR Code</label>
+                                    </div>
+                                    {% if form.generate_qr.errors %}
+                                        <p class="mt-1 text-sm text-red-600">{{ form.generate_qr.errors.0 }}</p>
+                                    {% endif %}
+                                    <p class="mt-1 text-xs text-gray-500">Automatically generate a QR code for easy sharing of your short link.</p>
+                                </div>
+
+                                <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                                    <div class="flex items-start">
+                                        <div class="flex-shrink-0">
+                                            <i class="fas fa-lock text-yellow-400"></i>
+                                        </div>
+                                        <div class="ml-3">
+                                            <h4 class="text-sm font-medium text-yellow-900">How Password Protection Works</h4>
+                                            <div class="mt-1 text-sm text-yellow-700">
+                                                <ul class="list-disc list-inside space-y-1">
+                                                    <li>Visitors will see a password prompt before accessing your link</li>
+                                                    <li>Passwords are hashed using industry-standard encryption</li>
+                                                    <li>Once verified, access is remembered for 1 hour in the user's session</li>
+                                                    <li>You can change or remove the password anytime by editing the link</li>
+                                                </ul>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                                    <div class="flex items-start">
+                                        <div class="flex-shrink-0">
+                                            <i class="fas fa-info-circle text-blue-400"></i>
+                                        </div>
+                                        <div class="ml-3">
+                                            <h4 class="text-sm font-medium text-blue-900">Security Features</h4>
+                                            <div class="mt-1 text-sm text-blue-700">
+                                                <ul class="list-disc list-inside space-y-1">
+                                                    <li>All links are automatically tracked for analytics</li>
+                                                    <li>Password protection adds an extra layer of security</li>
+                                                    <li>Expiry dates and click limits help control access</li>
+                                                </ul>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="flex gap-3">
+                                <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium transition-all duration-200">
+                                    Create Short Link
+                                </button>
+                                <button type="button" id="createWithQR" class="flex items-center gap-2 px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-all duration-200">
+                                    <i class="fas fa-qrcode"></i>
+                                    Create with QR
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Preview -->
+        <div>
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200">
+                <div class="p-6 border-b border-gray-200">
+                    <h2 class="text-xl font-semibold text-gray-900">Preview</h2>
+                    <p class="text-gray-600 mt-1">How your link will appear</p>
+                </div>
+                <div class="p-6">
+                    <div id="preview-section" class="space-y-4">
+                        <div class="p-4 bg-gray-50 border border-gray-200 rounded-lg text-center">
+                            <p class="text-gray-500">Enter a URL to see preview</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Available Domains -->
+                    {% if available_domains %}
+                    <div class="mt-6 pt-6 border-t border-gray-200">
+                        <h3 class="text-sm font-medium text-gray-900 mb-3">Available Domains</h3>
+                        <div class="space-y-2">
+                            {% for domain in available_domains %}
+                            <div class="flex items-center justify-between p-2 bg-gray-50 rounded-lg">
+                                <div class="flex items-center gap-2">
+                                    <div class="w-2 h-2 bg-green-500 rounded-full"></div>
+                                    <span class="text-sm font-medium text-gray-900">{{ domain.name }}</span>
+                                </div>
+                                <span class="text-xs text-gray-500">Active</span>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const urlInput = document.querySelector('input[name="original_url"]');
+    const domainSelect = document.querySelector('select[name="domain"]');
+    const previewSection = document.getElementById('preview-section');
+    const createWithQRBtn = document.getElementById('createWithQR');
+    const generateQRCheckbox = document.querySelector('input[name="generate_qr"]');
+    const form = document.querySelector('form');
+    
+    function updatePreview() {
+        const url = urlInput.value;
+        const selectedDomain = domainSelect.options[domainSelect.selectedIndex];
+        
+        if (url && url.startsWith('http')) {
+            const domainName = selectedDomain.text || 'linkfusion.co';
+            const shortCode = 'abc123'; // This would be generated by the backend
+            
+            previewSection.innerHTML = `
+                <div class="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                    <div class="space-y-3">
+                        <div>
+                            <label class="text-xs font-medium text-blue-900 uppercase tracking-wide">Short URL</label>
+                            <p class="text-lg font-mono text-blue-700">${domainName}/${shortCode}</p>
+                        </div>
+                        <div>
+                            <label class="text-xs font-medium text-blue-900 uppercase tracking-wide">Original URL</label>
+                            <p class="text-sm text-blue-600 truncate">${url}</p>
+                        </div>
+                        <div class="flex items-center gap-2 text-xs text-blue-600">
+                            <i class="fas fa-check-circle"></i>
+                            <span>Ready to create</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+        } else {
+            previewSection.innerHTML = `
+                <div class="p-4 bg-gray-50 border border-gray-200 rounded-lg text-center">
+                    <p class="text-gray-500">Enter a URL to see preview</p>
+                </div>
+            `;
+        }
+    }
+    
+    // Handle Create with QR button
+    if (createWithQRBtn && generateQRCheckbox && form) {
+        createWithQRBtn.addEventListener('click', function() {
+            // Check the QR generation checkbox
+            generateQRCheckbox.checked = true;
+            
+            // Switch to security tab to show the QR option
+            const securityTab = document.querySelector('button[x-on\\:click*="security"]') || 
+                               document.querySelector('button[\\@click*="security"]') ||
+                               document.querySelector('button').parentNode.querySelector('button:nth-child(3)');
+            if (securityTab) {
+                securityTab.click();
+            }
+            
+            // Highlight the QR checkbox briefly
+            const qrSection = generateQRCheckbox.closest('div');
+            qrSection.classList.add('bg-blue-50', 'border', 'border-blue-200', 'rounded-lg', 'p-3');
+            setTimeout(() => {
+                qrSection.classList.remove('bg-blue-50', 'border', 'border-blue-200', 'rounded-lg', 'p-3');
+            }, 2000);
+            
+            // Submit the form
+            form.submit();
+        });
+    }
+    
+    if (urlInput && domainSelect) {
+        urlInput.addEventListener('input', updatePreview);
+        domainSelect.addEventListener('change', updatePreview);
+    }
+});
+</script>
+{% endblock %} 
