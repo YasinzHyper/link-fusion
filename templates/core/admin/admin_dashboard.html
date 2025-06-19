@@ -21,8 +21,14 @@
                 <h3 class="text-sm font-medium text-gray-600">Total Users</h3>
                 <i class="fas fa-users text-blue-600"></i>
             </div>
-            <div class="text-2xl font-bold text-gray-900">{{ total_users|default:"12,456" }}</div>
-            <p class="text-xs text-gray-500">+12% from last month</p>
+            <div class="text-2xl font-bold text-gray-900">{{ total_users|default:0|floatformat:0 }}</div>
+            <p class="text-xs text-gray-500">
+                {% if users_growth >= 0 %}
+                    <span class="text-green-600">+{{ users_growth|floatformat:1 }}%</span> from last month
+                {% else %}
+                    <span class="text-red-600">{{ users_growth|floatformat:1 }}%</span> from last month
+                {% endif %}
+            </p>
         </div>
 
         <div class="bg-white p-6 rounded-lg shadow border">
@@ -30,8 +36,14 @@
                 <h3 class="text-sm font-medium text-gray-600">Total Links</h3>
                 <i class="fas fa-link text-green-600"></i>
             </div>
-            <div class="text-2xl font-bold text-gray-900">{{ total_links|default:"1,234,567" }}</div>
-            <p class="text-xs text-gray-500">+8% from last month</p>
+            <div class="text-2xl font-bold text-gray-900">{{ total_links|default:0|floatformat:0 }}</div>
+            <p class="text-xs text-gray-500">
+                {% if links_growth >= 0 %}
+                    <span class="text-green-600">+{{ links_growth|floatformat:1 }}%</span> from last month
+                {% else %}
+                    <span class="text-red-600">{{ links_growth|floatformat:1 }}%</span> from last month
+                {% endif %}
+            </p>
         </div>
 
         <div class="bg-white p-6 rounded-lg shadow border">
@@ -39,8 +51,14 @@
                 <h3 class="text-sm font-medium text-gray-600">Total Clicks</h3>
                 <i class="fas fa-mouse-pointer text-purple-600"></i>
             </div>
-            <div class="text-2xl font-bold text-gray-900">{{ total_clicks|default:"5,678,901" }}</div>
-            <p class="text-xs text-gray-500">+18% from last month</p>
+            <div class="text-2xl font-bold text-gray-900">{{ total_clicks|default:0|floatformat:0 }}</div>
+            <p class="text-xs text-gray-500">
+                {% if clicks_growth >= 0 %}
+                    <span class="text-green-600">+{{ clicks_growth|floatformat:1 }}%</span> from last month
+                {% else %}
+                    <span class="text-red-600">{{ clicks_growth|floatformat:1 }}%</span> from last month
+                {% endif %}
+            </p>
         </div>
 
         <div class="bg-white p-6 rounded-lg shadow border">
@@ -48,8 +66,14 @@
                 <h3 class="text-sm font-medium text-gray-600">Active Links</h3>
                 <i class="fas fa-check-circle text-orange-600"></i>
             </div>
-            <div class="text-2xl font-bold text-gray-900">{{ active_links|default:"987,654" }}</div>
-            <p class="text-xs text-gray-500">+5% from last month</p>
+            <div class="text-2xl font-bold text-gray-900">{{ active_links|default:0|floatformat:0 }}</div>
+            <p class="text-xs text-gray-500">
+                {% if active_links_growth >= 0 %}
+                    <span class="text-green-600">+{{ active_links_growth|floatformat:1 }}%</span> from last month
+                {% else %}
+                    <span class="text-red-600">{{ active_links_growth|floatformat:1 }}%</span> from last month
+                {% endif %}
+            </p>
         </div>
     </div>
 
@@ -62,19 +86,34 @@
                 <p class="text-sm text-gray-600">Latest user activities and system events</p>
             </div>
             <div class="space-y-4">
-                {% for activity in recent_activities|default:"1,2,3,4,5"|make_list %}
-                <div class="flex items-center">
-                    <i class="fas fa-chart-line text-gray-400 mr-3"></i>
-                    <div class="ml-4 space-y-1">
-                        <p class="text-sm font-medium text-gray-900">
-                            User created new short link
-                        </p>
-                        <p class="text-sm text-gray-500">
-                            2 minutes ago
-                        </p>
+                {% if recent_activities %}
+                    {% for activity in recent_activities %}
+                    <div class="flex items-center">
+                        {% if activity.activity_type == 'link_created' %}
+                            <i class="fas fa-plus-circle text-green-500 mr-3"></i>
+                        {% elif activity.activity_type == 'link_clicked' %}
+                            <i class="fas fa-mouse-pointer text-blue-500 mr-3"></i>
+                        {% elif activity.activity_type == 'user_registered' %}
+                            <i class="fas fa-user-plus text-purple-500 mr-3"></i>
+                        {% else %}
+                            <i class="fas fa-chart-line text-gray-400 mr-3"></i>
+                        {% endif %}
+                        <div class="ml-4 space-y-1">
+                            <p class="text-sm font-medium text-gray-900">
+                                {{ activity.description|default:"System activity" }}
+                            </p>
+                            <p class="text-sm text-gray-500">
+                                {{ activity.created_at|timesince }} ago
+                            </p>
+                        </div>
                     </div>
-                </div>
-                {% endfor %}
+                    {% endfor %}
+                {% else %}
+                    <div class="text-center py-8">
+                        <i class="fas fa-chart-line text-gray-300 text-3xl mb-2"></i>
+                        <p class="text-sm text-gray-500">No recent activity to display</p>
+                    </div>
+                {% endif %}
             </div>
         </div>
         

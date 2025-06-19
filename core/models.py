@@ -46,13 +46,19 @@ class Domain(models.Model):
         # Remove protocol if present
         domain_name = self.name.replace('http://', '').replace('https://', '')
         
-        # Basic domain validation
+        # Allow localhost with optional port
+        localhost_pattern = r'^localhost(:\d+)?$'
+        if re.match(localhost_pattern, domain_name):
+            self.name = domain_name
+            return
+        
+        # Basic domain validation for regular domains
         domain_regex = re.compile(
             r'^(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,}$'
         )
         
         if not domain_regex.match(domain_name):
-            raise ValidationError('Please enter a valid domain name (e.g., example.com)')
+            raise ValidationError('Please enter a valid domain name (e.g., example.com or localhost:8001)')
         
         self.name = domain_name
 

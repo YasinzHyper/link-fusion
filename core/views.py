@@ -505,19 +505,86 @@ class AdminDashboardView(UserPassesTestMixin, TemplateView):
         return self.request.user.is_staff
     
     def get_context_data(self, **kwargs):
+        from datetime import datetime, timedelta
+        
         context = super().get_context_data(**kwargs)
         
-        # Admin statistics
+        # Current date and last month
+        now = datetime.now()
+        last_month = now - timedelta(days=30)
+        
+        # Current statistics
         total_users = UserProfile.objects.count()
         total_links = ShortenedURL.objects.count()
         total_clicks = Click.objects.count()
         active_links = ShortenedURL.objects.filter(is_active=True).count()
+        
+        # Previous month statistics for growth calculation
+        users_last_month = UserProfile.objects.filter(created_at__lte=last_month).count()
+        links_last_month = ShortenedURL.objects.filter(created_at__lte=last_month).count()
+        clicks_last_month = Click.objects.filter(clicked_at__lte=last_month).count()
+        active_links_last_month = ShortenedURL.objects.filter(
+            created_at__lte=last_month, 
+            is_active=True
+        ).count()
+        
+        # Calculate growth percentages
+        def calculate_growth(current, previous):
+            if previous == 0:
+                return 100.0 if current > 0 else 0.0
+            return ((current - previous) / previous) * 100
+        
+        users_growth = calculate_growth(total_users, users_last_month)
+        links_growth = calculate_growth(total_links, links_last_month)
+        clicks_growth = calculate_growth(total_clicks, clicks_last_month)
+        active_links_growth = calculate_growth(active_links, active_links_last_month)
+        
+        # Recent activities - combine different activities
+        recent_activities = []
+        
+        # Recent user registrations
+        recent_users = UserProfile.objects.select_related('user').order_by('-created_at')[:5]
+        for profile in recent_users:
+            recent_activities.append({
+                'activity_type': 'user_registered',
+                'description': f"New user registered: {profile.user.username}",
+                'created_at': profile.created_at
+            })
+        
+        # Recent link creations
+        recent_links = ShortenedURL.objects.select_related('user').order_by('-created_at')[:5]
+        for link in recent_links:
+            user_name = link.user.username if link.user else 'Anonymous'
+            recent_activities.append({
+                'activity_type': 'link_created',
+                'description': f"New link created by {user_name}: {link.title or link.short_code}",
+                'created_at': link.created_at
+            })
+        
+        # Recent clicks
+        recent_clicks = Click.objects.select_related('url', 'url__user').order_by('-clicked_at')[:5]
+        for click in recent_clicks:
+            user_name = click.url.user.username if click.url.user else 'Anonymous'
+            recent_activities.append({
+                'activity_type': 'link_clicked',
+                'description': f"Link clicked: {click.url.title or click.url.short_code} by {user_name}",
+                'created_at': click.clicked_at
+            })
+        
+        # Sort all activities by date and take the most recent 10
+        recent_activities.sort(key=lambda x: x['created_at'], reverse=True)
+        recent_activities = recent_activities[:10]
         
         context.update({
             'total_users': total_users,
             'total_links': total_links,
             'total_clicks': total_clicks,
             'active_links': active_links,
+            'users_growth': users_growth,
+            'links_growth': links_growth,
+            'clicks_growth': clicks_growth,
+            'active_links_growth': active_links_growth,
+            'recent_activities': recent_activities,
         })
         return context
 

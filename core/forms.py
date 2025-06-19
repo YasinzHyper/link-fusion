@@ -134,15 +134,22 @@ class DomainForm(forms.ModelForm):
         }
 
     def clean_name(self):
+        import re
         name = self.cleaned_data['name']
         # Remove protocol if provided
         if name.startswith(('http://', 'https://')):
             name = name.split('://', 1)[1]
         # Remove trailing slash
         name = name.rstrip('/')
-        # Basic domain validation
+        
+        # Allow localhost with optional port
+        localhost_pattern = r'^localhost(:\d+)?$'
+        if re.match(localhost_pattern, name):
+            return name
+        
+        # Basic domain validation for regular domains
         if not name or '.' not in name:
-            raise forms.ValidationError('Please enter a valid domain name (e.g., your-domain.com)')
+            raise forms.ValidationError('Please enter a valid domain name (e.g., your-domain.com or localhost:8001)')
         return name
 
 
