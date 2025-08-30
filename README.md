@@ -166,6 +166,7 @@ backend/
 
 ### Prerequisites
 - Python 3.8+
+- Node.js and npm (required for Tailwind CSS)
 - pip (Python package manager)
 - Virtual environment (recommended)
 
@@ -174,7 +175,7 @@ backend/
 1. **Clone the repository**
    ```bash
    git clone https://github.com/manjurulhoque/link-fusion.git
-   cd link-fusion/backend
+   cd link-fusion
    ```
 
 2. **Create virtual environment**
@@ -183,38 +184,92 @@ backend/
    source venv/bin/activate  # On Windows: venv\Scripts\activate
    ```
 
-3. **Install dependencies**
+3. **Install Python dependencies**
    ```bash
    pip install -r requirements.txt
    ```
 
-4. **Apply migrations**
+4. **Initialize Tailwind CSS theme**
+   ```bash
+   python manage.py tailwind init
+   ```
+   
+   **Note**: If you encounter a "No module named 'theme'" error during `makemigrations`, this step creates the required theme app for django-tailwind.
+
+5. **Install Tailwind CSS dependencies**
+   ```bash
+   python manage.py tailwind install
+   ```
+   
+   **Troubleshooting**: If you get a "node.js and/or npm is not installed" error even though you have Node.js installed, add the following to your `settings.py`:
+   ```python
+   # For Windows
+   NPM_BIN_PATH = r"C:\Program Files\nodejs\npm.cmd"
+   
+   # For macOS/Linux (adjust path as needed)
+   NPM_BIN_PATH = "/usr/local/bin/npm"
+   ```
+
+6. **Apply database migrations**
    ```bash
    python manage.py makemigrations
    python manage.py migrate
    ```
 
-5. **Create superuser (optional)**
+7. **Create superuser (optional)**
    ```bash
    python manage.py createsuperuser
    ```
 
-6. **Install Tailwind CSS**
-   ```bash
-   python manage.py tailwind install
-   ```
-
-7. **Run development server**
+8. **Run development server**
    ```bash
    python manage.py runserver
    ```
 
    Access the application at `http://localhost:8000`
 
-8. **Run Tailwind CSS in watch mode (separate terminal)**
+9. **Run Tailwind CSS in watch mode (separate terminal)**
    ```bash
+   # Activate virtual environment first
+   source venv/bin/activate  # On Windows: venv\Scripts\activate
    python manage.py tailwind start
    ```
+
+## 🔧 Troubleshooting
+
+### Common Setup Issues
+
+#### "No module named 'theme'" Error
+If you encounter this error when running `python manage.py makemigrations`:
+1. The Tailwind theme app hasn't been initialized yet
+2. Run `python manage.py tailwind init` first
+3. Then proceed with `makemigrations` and `migrate`
+
+#### "node.js and/or npm is not installed" Error
+Even if Node.js is installed, Django might not find it:
+1. Verify Node.js is installed: `node --version`
+2. Verify npm is installed: `npm --version`
+3. Find npm path:
+   - **Windows**: `Get-Command npm` (in PowerShell)
+   - **macOS/Linux**: `which npm`
+4. Add the path to your `settings.py`:
+   ```python
+   NPM_BIN_PATH = r"C:\Program Files\nodejs\npm.cmd"  # Windows
+   # or
+   NPM_BIN_PATH = "/usr/local/bin/npm"  # macOS/Linux
+   ```
+
+#### Virtual Environment Issues
+- Always activate your virtual environment before running Django commands
+- **Windows**: `venv\Scripts\activate`
+- **macOS/Linux**: `source venv/bin/activate`
+- If you see "ModuleNotFoundError: No module named 'django'", your virtual environment is not activated
+
+#### Tailwind CSS Not Loading
+1. Make sure you ran `python manage.py tailwind install`
+2. Start Tailwind in watch mode: `python manage.py tailwind start`
+3. Keep the Tailwind watch process running during development
+4. Check that `theme` is in your `INSTALLED_APPS` in `settings.py`
 
 ## 🔧 Configuration
 

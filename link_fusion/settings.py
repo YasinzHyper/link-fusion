@@ -125,6 +125,7 @@ MEDIA_ROOT = os.path.join(BASE_DIR, "media")
 
 # Tailwind CSS
 TAILWIND_APP_NAME = "theme"
+NPM_BIN_PATH = r"C:\Program Files\nodejs\npm.cmd"
 
 # Login/Logout URLs
 LOGIN_URL = "/login/"
